@@ -175,7 +175,7 @@
 
   // Canvas container
   var container = document.createElement("div");
-  container.style.cssText = "position:relative;width:100%;max-width:1100px;height:620px;overflow:hidden;border-radius:16px;cursor:crosshair;border:1px solid rgba(255,255,255,0.04);";
+  container.style.cssText = "position:relative;width:100%;max-width:1100px;height:620px;overflow:hidden;cursor:crosshair;background:transparent;";
   root.appendChild(container);
 
   var canvas = document.createElement("canvas");
@@ -193,7 +193,7 @@
   CAT_ORDER.forEach(function (cat) {
     var hex = CAT_HEX[cat];
     var el = document.createElement("div");
-    el.style.cssText = "pointer-events:auto;display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;transition:all 0.2s;border:1px solid " + hex + "15;background:" + hex + "06;opacity:0.45;";
+    el.style.cssText = "pointer-events:auto;display:flex;align-items:center;gap:8px;padding:0;cursor:pointer;transition:all 0.2s;border:none;background:transparent;opacity:0.45;";
     el.innerHTML =
       '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + hex + ';transition:all 0.2s;"></span>' +
       '<span style="text-transform:uppercase;letter-spacing:0.1em;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:rgba(255,255,255,0.5);transition:all 0.2s;">' + cat + '</span>';
@@ -209,19 +209,7 @@
     catElements[cat] = { el: el, dot: el.children[0], text: el.children[1], hex: hex };
   });
 
-  // Edge fades
-  var fades = [
-    "position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 68%,rgba(6,6,10,0.5) 88%,#06060a 100%);",
-    "position:absolute;bottom:0;left:0;right:0;height:16px;pointer-events:none;background:linear-gradient(to top,#06060a,transparent);",
-    "position:absolute;top:0;left:0;right:0;height:16px;pointer-events:none;background:linear-gradient(to bottom,#06060a,transparent);",
-    "position:absolute;top:0;left:0;bottom:0;width:16px;pointer-events:none;background:linear-gradient(to right,#06060a,transparent);",
-    "position:absolute;top:0;right:0;bottom:0;width:16px;pointer-events:none;background:linear-gradient(to left,#06060a,transparent);"
-  ];
-  fades.forEach(function (css) {
-    var d = document.createElement("div");
-    d.style.cssText = css;
-    container.appendChild(d);
-  });
+  // Edge fades removed — fully transparent background
 
   /* ================================================================
      STATE
@@ -257,8 +245,8 @@
     CAT_ORDER.forEach(function (cat) {
       var c = catElements[cat];
       var highlighted = (activeCat === cat) || centerHovered;
-      c.el.style.border = "1px solid " + c.hex + (highlighted ? "44" : "15");
-      c.el.style.background = highlighted ? c.hex + "12" : c.hex + "06";
+      c.el.style.border = "none";
+      c.el.style.background = "transparent";
       c.el.style.opacity = highlighted ? "1" : "0.45";
       c.dot.style.boxShadow = highlighted ? "0 0 8px " + c.hex + "88" : "none";
       c.text.style.color = highlighted ? c.hex : "rgba(255,255,255,0.5)";
