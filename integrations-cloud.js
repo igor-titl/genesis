@@ -1,0 +1,599 @@
+/**
+ * Integrations Cloud — Vanilla JS Canvas Animation
+ * Drop this script into Webflow (or any HTML page).
+ *
+ * Usage:
+ *   <div id="integrations-cloud"></div>
+ *   <script src="integrations-cloud.js"></script>
+ *
+ * The script will build all DOM elements inside #integrations-cloud.
+ * Requires no dependencies — pure vanilla JS + Canvas API.
+ */
+(function () {
+  "use strict";
+
+  /* ================================================================
+     DATA
+     ================================================================ */
+  var CONNECTORS = [
+    "GitHub","GitLab","Bitbucket","Snowflake","Databricks",
+    "PostgreSQL","MySQL","SQLite","Microsoft SQL Server","Oracle",
+    "Amazon Redshift","ClickHouse","Jira","Confluence","Jenkins",
+    "Apache Airflow","AWS","Railway","Google Cloud","dbt Cloud",
+    "Matillion","OpenMetadata","Google Search","Google Workspace",
+    "Microsoft OneDrive","Microsoft SharePoint","OpenAI",
+    "Anthropic","Gemini","AWS Bedrock","BigQuery",
+    "Databricks Genie","Snowflake Cortex","Azure OpenAI"
+  ];
+
+  var CONNECTOR_CATS = {
+    Warehouses: ["Snowflake","Databricks","BigQuery","Amazon Redshift","ClickHouse","OpenMetadata"],
+    AI: ["OpenAI","Anthropic","Gemini","AWS Bedrock","Databricks Genie","Snowflake Cortex","Azure OpenAI"],
+    Pipelines: ["dbt Cloud","Apache Airflow","Matillion"],
+    DevOps: ["GitHub","GitLab","Bitbucket","Jenkins","Jira","Confluence"],
+    Cloud: ["AWS","Google Cloud","Railway","Microsoft OneDrive","Microsoft SharePoint","Google Workspace","Google Search"],
+    Databases: ["PostgreSQL","MySQL","SQLite","Microsoft SQL Server","Oracle"]
+  };
+
+  var CAT_COLORS = {
+    Warehouses: "72,180,255",
+    DevOps: "168,130,255",
+    Cloud: "100,220,180",
+    Databases: "255,180,80",
+    AI: "255,107,43",
+    Pipelines: "0,200,150"
+  };
+
+  var CAT_HEX = {
+    Warehouses: "#48b4ff",
+    DevOps: "#a882ff",
+    Cloud: "#64dcb4",
+    Databases: "#ffb450",
+    AI: "#ff6b2b",
+    Pipelines: "#00c896"
+  };
+
+  var CAT_ORDER = ["Warehouses","AI","Pipelines","DevOps","Cloud","Databases"];
+
+  var CONN_TO_CAT = {};
+  CAT_ORDER.forEach(function (cat) {
+    (CONNECTOR_CATS[cat] || []).forEach(function (c) { CONN_TO_CAT[c] = cat; });
+  });
+
+  /* ================================================================
+     CDN ICON SLUGS
+     ================================================================ */
+  var ICON_SLUGS = {
+    Snowflake:"snowflake", Databricks:"databricks", PostgreSQL:"postgresql",
+    MySQL:"mysql", SQLite:"sqlite", ClickHouse:"clickhouse",
+    "Apache Airflow":"apacheairflow", Jenkins:"jenkins", Matillion:"matillion",
+    GitHub:"github", GitLab:"gitlab", Bitbucket:"bitbucket",
+    "Google Cloud":"googlecloud", Railway:"railway", Jira:"jira",
+    Confluence:"confluence", "Google Workspace":"google",
+    "Google Search":"googlechrome", Anthropic:"anthropic",
+    Gemini:"googlegemini", BigQuery:"googlebigquery",
+    "Databricks Genie":"databricks", "Snowflake Cortex":"snowflake",
+    "Azure OpenAI":"microsoftazure"
+  };
+
+  /* ================================================================
+     LOCAL SVG PATHS (for icons not on simpleicons CDN)
+     ================================================================ */
+  var LOCAL_SVG = {
+    Oracle: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.412 4.412h-8.82a7.588 7.588 0 0 0-.008 15.176h8.828a7.588 7.588 0 0 0 0-15.176zm-.193 12.502H7.786a4.915 4.915 0 0 1 0-9.828h8.433a4.914 4.914 0 1 1 0 9.828z" fill="#000"/></svg>',
+    AWS: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.763 10.036c0 .296.032.535.088.71.064.176.144.368.256.576.04.063.056.127.056.183 0 .08-.048.16-.152.24l-.503.335a.383.383 0 0 1-.208.072c-.08 0-.16-.04-.239-.112a2.47 2.47 0 0 1-.287-.375 6.18 6.18 0 0 1-.248-.471c-.622.734-1.405 1.101-2.347 1.101-.67 0-1.205-.191-1.596-.574-.391-.384-.59-.894-.59-1.533 0-.678.239-1.23.726-1.644.487-.415 1.133-.623 1.955-.623.272 0 .551.024.846.064.296.04.6.104.918.176v-.583c0-.607-.127-1.03-.375-1.277-.255-.248-.686-.367-1.3-.367-.28 0-.568.031-.863.103a6.4 6.4 0 0 0-.862.272 2.287 2.287 0 0 1-.28.104.488.488 0 0 1-.127.023c-.112 0-.168-.08-.168-.247v-.391c0-.128.016-.224.056-.28a.597.597 0 0 1 .224-.167c.279-.144.614-.264 1.005-.36a4.84 4.84 0 0 1 1.246-.151c.95 0 1.644.216 2.091.647.439.43.662 1.085.662 1.963v2.586zm-3.24 1.214c.263 0 .534-.048.822-.144.287-.096.543-.271.758-.51.128-.152.224-.32.272-.512.047-.191.08-.423.08-.694v-.335a6.66 6.66 0 0 0-.735-.136 6.02 6.02 0 0 0-.75-.048c-.535 0-.926.104-1.19.32-.263.215-.39.518-.39.917 0 .375.095.655.295.846.191.2.47.296.838.296zm6.41.862c-.144 0-.24-.024-.304-.08-.064-.048-.12-.16-.168-.311L7.586 5.55a1.398 1.398 0 0 1-.072-.32c0-.128.064-.2.191-.2h.783c.151 0 .255.025.31.08.065.048.113.16.16.312l1.342 5.284 1.245-5.284c.04-.16.088-.264.151-.312a.549.549 0 0 1 .32-.08h.638c.152 0 .256.025.32.08.063.048.12.16.151.312l1.261 5.348 1.381-5.348c.048-.16.104-.264.16-.312a.52.52 0 0 1 .311-.08h.743c.127 0 .2.065.2.2 0 .04-.009.08-.017.128a1.137 1.137 0 0 1-.056.2l-1.923 6.17c-.048.16-.104.263-.168.311a.51.51 0 0 1-.303.08h-.687c-.151 0-.255-.024-.32-.08-.063-.056-.119-.16-.15-.32l-1.238-5.148-1.23 5.14c-.04.16-.087.264-.15.32-.065.056-.177.08-.32.08zm10.256.215c-.415 0-.83-.048-1.229-.143-.399-.096-.71-.2-.918-.32-.128-.071-.215-.151-.247-.223a.563.563 0 0 1-.048-.224v-.407c0-.167.064-.247.183-.247.048 0 .096.008.144.024.048.016.12.048.2.08.271.12.566.215.878.279.319.064.63.096.95.096.502 0 .894-.088 1.165-.264a.86.86 0 0 0 .415-.758.777.777 0 0 0-.215-.559c-.144-.151-.416-.287-.807-.415l-1.157-.36c-.583-.183-1.014-.454-1.277-.813a1.902 1.902 0 0 1-.4-1.158c0-.335.073-.63.216-.886.144-.255.335-.479.575-.654.24-.184.51-.32.83-.415.32-.096.655-.136 1.006-.136.175 0 .359.008.535.032.183.024.35.056.518.088.16.04.312.08.455.127.144.048.256.096.336.144a.69.69 0 0 1 .24.2.43.43 0 0 1 .071.263v.375c0 .168-.064.256-.184.256a.83.83 0 0 1-.303-.096 3.652 3.652 0 0 0-1.532-.311c-.455 0-.815.071-1.062.223-.248.152-.375.383-.375.71 0 .224.08.416.24.567.159.152.454.304.877.44l1.134.358c.574.184.99.44 1.237.767.247.327.367.702.367 1.117 0 .343-.072.655-.207.926-.144.272-.336.511-.583.703-.248.2-.543.343-.886.447-.36.111-.734.167-1.142.167zm1.509 3.88c-2.626 1.94-6.442 2.969-9.722 2.969-4.598 0-8.74-1.7-11.87-4.526-.247-.223-.024-.527.272-.351 3.384 1.963 7.559 3.153 11.877 3.153 2.914 0 6.114-.607 9.06-1.852.439-.2.814.287.383.607zm1.094-1.246c-.336-.43-2.22-.207-3.074-.103-.255.032-.295-.192-.063-.36 1.5-1.053 3.967-.75 4.254-.399.287.36-.08 2.826-1.485 4.007-.215.184-.423.088-.327-.151.32-.79 1.03-2.57.695-2.994z" fill="#000"/></svg>',
+    OpenAI: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .511 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.142-.08 4.778-2.758a.795.795 0 0 0 .393-.681v-6.737l2.02 1.168a.07.07 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.495 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.758a.77.77 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.677l5.814 3.354-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.856L13.104 8.364l2.015-1.164a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.41 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zM8.307 12.863l-2.02-1.164a.08.08 0 0 1-.038-.057V6.074a4.5 4.5 0 0 1 7.376-3.454l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.098-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" fill="#000"/></svg>',
+    "Amazon Redshift": '<svg viewBox="0 0 1615 1783.7" xmlns="http://www.w3.org/2000/svg"><path d="m807.5 1363.8 678.3 161.5v-1270.5l-678.3 161.5z" fill="#000"/><path d="m1485.8 254.8 129.2 64.6v1141.3l-129.2 64.6zm-678.3 1109-678.3 161.5v-1270.5l678.3 161.5z" fill="#000"/><path d="m129.2 254.8-129.2 64.6v1141.3l129.2 64.6z" fill="#000"/><path d="m979.8 1783.7 258.4-129.2v-1525.3l-258.4-129.2-79 847z" fill="#000"/><path d="m635.2 1783.7-258.4-129.2v-1525.3l258.4-129.2 79 847z" fill="#000"/><path d="m635.2 0h348.1v1780.1h-348.1z" fill="#000"/></svg>',
+    "dbt Cloud": '<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M245.12 10.65C251.14 16.43 255.07 24.07 256 32.41c0 3.47-.93 5.78-3.01 10.18-2.08 4.4-27.78 48.84-35.41 61.11-4.4 7.17-6.71 15.74-6.71 24.07 0 8.56 2.31 16.9 6.71 24.07 7.64 12.27 33.33 56.94 35.41 61.34 2.08 4.4 3.01 6.48 3.01 9.95-.93 8.33-4.63 15.97-10.65 21.53-5.79 6.02-13.42 9.95-21.53 10.65-3.47 0-5.79-.93-9.95-3.01-4.17-2.08-49.57-27.08-61.84-34.72-.93-.46-1.85-1.16-3.01-1.62l-60.64-35.88c1.39 11.57 6.48 22.68 14.81 30.78 1.62 1.62 3.24 3.01 5.09 4.4-1.39.69-3.01 1.39-4.4 2.31-12.27 7.64-56.94 33.33-61.34 35.41-4.4 2.08-6.48 3.01-10.18 3.01-8.33-.93-15.97-4.63-21.53-10.65C4.86 239.57.93 231.93 0 223.59c.23-3.47 1.16-6.94 3.01-9.95 2.08-4.4 27.78-49.07 35.41-61.34 4.4-7.18 6.71-15.51 6.71-24.07 0-8.56-2.31-16.9-6.71-24.07C30.78 91.43 4.86 46.76 3.01 42.36 1.16 39.35.23 35.88 0 32.41.93 24.07 4.63 16.43 10.65 10.65 16.43 4.63 24.07.93 32.41 0c3.47.23 6.94 1.16 10.18 3.01 3.7 1.62 36.34 20.6 53.7 30.78l3.93 2.32c1.39.93 2.55 1.62 3.47 2.08l1.85 1.16 61.8 36.57c-1.39-13.89-8.56-26.62-19.67-35.18 1.39-.7 3.01-1.39 4.4-2.32 12.27-7.64 56.94-33.33 61.34-35.18 3.01-1.85 6.48-2.78 10.18-3.01 8.1.93 15.74 4.63 21.53 10.65zM131.24 144.43l13.19-13.19c1.85-1.85 1.85-4.63 0-6.48l-13.19-13.19c-1.85-1.85-4.63-1.85-6.48 0l-13.19 13.19c-1.85 1.85-1.85 4.63 0 6.48l13.19 13.19c1.62 1.62 4.63 1.62 6.48 0z" fill="#000"/></svg>',
+    "Microsoft SharePoint": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#000" fill-rule="evenodd" d="m18.5 7.076 0-.076A6 6 0 0 0 6.841 5H12a2 2 0 0 1 2 2v1.022A6.47 6.47 0 0 1 17.5 7c.34 0 .674.026 1 .076ZM13 23a4 4 0 0 1-4-4h3a2 2 0 0 0 2-2v-1.874A4.002 4.002 0 0 1 13 23Zm1-8.9a5.002 5.002 0 0 1 4 4.878 5.5 5.5 0 1 0-4-9.72V14.1ZM1 17V7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1Zm5.719-8.47c.87-.109 1.856.068 2.487.249l-.412 1.442c-.535-.153-1.3-.276-1.888-.202-.293.037-.463.113-.547.182-.052.043-.109.107-.109.299 0 .07.018.166.239.326.242.177.591.33 1.048.518l.07.03c.399.164.887.366 1.272.632.426.294.871.767.871 1.494 0 .685-.24 1.256-.741 1.626-.455.337-1.015.424-1.49.436-.489.012-1.003-.054-1.45-.126-.195-.031-.369-.062-.528-.09a13.081 13.081 0 0 0-.634-.102l.186-1.488c.221.027.496.075.768.123.153.027.305.053.446.076.427.069.83.116 1.174.108.358-.01.548-.078.635-.142.041-.03.134-.106.134-.421l0-.002c0-.026.001-.103-.223-.257-.248-.172-.6-.319-1.064-.51l-.01-.005c-.417-.173-.938-.388-1.348-.687-.436-.318-.855-.81-.855-1.54 0-.607.234-1.11.657-1.457.39-.32.876-.456 1.312-.511Z" clip-rule="evenodd"/></svg>',
+    OpenMetadata: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 8C27.9 8 10 25.9 10 48v24c0 11 9 20 20 20h40c11 0 20-9 20-20V48C90 25.9 72.1 8 50 8zm-16 56c-4.4 0-8-3.6-8-8V40c0-4.4 3.6-8 8-8s8 3.6 8 8v16c0 4.4-3.6 8-8 8zm32 0c-4.4 0-8-3.6-8-8V40c0-4.4 3.6-8 8-8s8 3.6 8 8v16c0 4.4-3.6 8-8 8z" fill="#000"/></svg>',
+    "Microsoft SQL Server": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#000" d="M23.084 11.277c-1.633-2.449-1.986-5.722-2.063-7.067-4.148.897-8.269 2.506-8.031 3.691.03.149.218.328.53.502l-.488.873c-.596-.334-.931-.719-1.022-1.179-.269-1.341 1.25-2.554 4.642-3.709 2.316-.789 4.652-1.26 4.751-1.279l.597-.12L22 3.6c0 .042.026 4.288 1.916 7.123l-.832.554z"/><path fill="#000" d="M24.751 43H24.5c-8.192 0-17.309-2.573-18.386-6.879-.657-2.63 1.492-5.536 6.214-8.401l.52.854c-4.249 2.579-6.296 5.172-5.763 7.305.935 3.738 9.575 6.068 17.153 6.12.901-1.347 5.742-9.26 2.979-19.873l.967-.252c3.149 12.092-3.218 20.837-3.282 20.924L24.751 43z"/><path fill="#000" d="M9.931 39.306c-.539 0-.806-.059-.85-.07a.498.498 0 0 1-.362-.352.498.498 0 0 1 .129-.488c.072-.072 7.197-7.208 8.159-12.978l.986.164c-.827 4.964-5.715 10.623-7.656 12.707 1.939-.111 6.835-1.019 16.234-6.28-7.335-.804-8.495-6.676-8.507-6.739l.983-.181c.047.246 1.226 6.011 9.244 6.011h.008c.227 0 .424.152.482.37.06.218-.036.449-.231.563C17.315 38.542 11.867 39.305 9.931 39.306z"/><path fill="#000" d="M14.524 41.7a.494.494 0 0 1-.468-.325.494.494 0 0 1 .177-.582c.034-.025 1.813-1.338 3.706-4.228-.728-.322-1.465-.698-2.196-1.137-.888-.533-1.559-1.105-2.06-1.691-2.57.678-4.942.946-7.025.769l.084-.996c1.876.159 4.009-.063 6.321-.64-1.573-2.688-.129-5.356-.109-5.392l.874.487c-.067.122-1.265 2.37.249 4.633 2.201-.632 4.549-1.567 6.979-2.782.559-1.835.996-3.922 1.225-6.276a.498.498 0 0 1 .248-.385.498.498 0 0 1 .458-.021c.032.015 3.264 1.491 5.604 2.454a.498.498 0 0 1 .307.411.498.498 0 0 1-.216.465c-2.289 1.56-4.563 2.913-6.778 4.042-.702 2.225-1.571 4.077-2.459 5.591 3.702 1.383 6.915 1.404 6.956 1.404a.498.498 0 0 1 .484.375.498.498 0 0 1-.241.563c-4.54 2.522-11.767 3.232-12.072 3.261a.22.22 0 0 1-.048.009zM18.909 36.967c-1.04 1.614-2.062 2.773-2.826 3.53 1.998-.294 5.501-.938 8.408-2.139-1.393-.171-3.408-.551-5.582-1.391zM14.767 33.431c.393.392.883.775 1.49 1.14.736.442 1.483.817 2.22 1.135.754-1.264 1.501-2.781 2.142-4.568-2.021.962-3.983 1.73-5.852 2.293zM23.202 24.329c-.205 1.768-.521 3.381-.913 4.85 1.66-.885 3.354-1.896 5.062-3.026-1.549-.656-3.252-1.419-4.149-1.824z"/><path fill="#000" d="M17.924 10.6a.498.498 0 0 1-.325-.12c-1.61-1.378-3.505-4.182-3.585-4.301a.498.498 0 0 1 .046-.616.498.498 0 0 1 .608-.102c.011.003.938.385 7.217 1.431a.498.498 0 0 1 .39.328.498.498 0 0 1-.1.5c-1.758 1.953-3.979 2.813-4.073 2.848a.498.498 0 0 1-.178.032zM15.647 6.746c.631.849 1.54 1.996 2.372 2.769.511-.233 1.657-.818 2.744-1.798-2.583-.441-4.159-.755-5.116-.971z"/><path fill="#000" d="M21.843 24.4a.498.498 0 0 1-.201-.042.498.498 0 0 1-.296-.51c.292-2.749-3.926-3.852-3.969-3.862a.498.498 0 0 1-.359-.352.498.498 0 0 1 .129-.486c.207-.207 5.139-5.098 11.327-7.784a.498.498 0 0 1 .515.07.498.498 0 0 1 .174.489c-1.186 5.744-6.71 12.044-6.944 12.309a.498.498 0 0 1-.376.168zM18.455 19.285c1.184.445 3.258 1.475 3.783 3.356 1.449-1.808 4.542-5.973 5.697-9.934-4.387 2.11-8.081 5.292-9.48 6.578z"/><path fill="#000" d="M13.079 28.36l-.475-.88c1.883-1.015 4.04-2.883 5.807-5.054-1.504 1.03-2.365 1.735-2.392 1.758l-.639-.77c.039-.032 1.764-1.447 4.631-3.22.787-1.266 1.392-2.568 1.703-3.816.053-.212.099-.417.136-.615-1.925-.687-3.701-1.094-4.921-1.269a.498.498 0 0 1-.401-.328.498.498 0 0 1 .104-.507c.085-.092 2.116-2.268 4.654-3.463a.498.498 0 0 1 .581.114c.067.073 1.44 1.615 1.091 4.805 1.155.45 2.345.997 3.491 1.648 2.759-1.24 5.892-2.356 9.229-3.03a.498.498 0 0 1 .481.168.498.498 0 0 1 .083.503c-1.3 3.332-4.786 6.891-4.934 7.041a.498.498 0 0 1-.383.148.498.498 0 0 1-.365-.188c-1.12-1.408-2.584-2.574-4.163-3.523-2.175 1.004-4.101 2.078-5.684 3.049-2.424 3.045-5.473 5.94-8.038 7.321zM27.492 17.396c1.29.832 2.491 1.81 3.484 2.948.828-.898 2.815-3.168 3.942-5.422-2.65.61-5.158 1.493-7.426 2.474zM22.799 16.122c-.033.163-.071.33-.113.5-.21.839-.544 1.701-.972 2.561 1.096-.626 2.309-1.272 3.618-1.898-.838-.442-1.693-.828-2.533-1.163zM18.048 13.672c1.111.218 2.48.574 3.941 1.086.152-1.843-.346-2.972-.647-3.472-1.376.718-2.581 1.728-3.294 2.386z"/><path fill="#000" d="M18.05 18.5c0 4.38-3.65 7.86-6.28 10.4-.44.43-1.93.5-1.93.5.37-.38.79-.78 1.24-1.21 2.5-2.42 5.97-5.73 5.97-9.69 0-4.69-1.89-6.54-3.38-8.02-.66-.67-1.22-1.31-1.56-2.09l.31-.13c.34.15.73.32 1.03.45.24.35.56.69.93 1.06C15.91 11.3 18.05 13.4 18.05 18.5z"/><path fill="#000" d="M42.935 19.794s-.605.086-.775.106c-8.76.97-17.8 3.49-22.97 5.56-1.87.75-3.81 1.66-5.58 2.68-.01.01-.02.01-.04.02C12.53 28.76 10 30 7.95 31.09c3-3.19 8.62-5.65 10.86-6.55 5.07-2.03 13.78-4.48 22.35-5.53-1.01-1.18-3.48-3.68-8.34-5.54-2.84-1.1-7.16-1.72-10.97-2.27-6.06-.87-9.51-1.45-9.84-3.1-.07-.33-.02-.66.13-.98.33.54.8.92 1.11 1.14.15.1.26.16.3.18l.01.01c1.42.75 5.25 1.3 8.44 1.76 3.86.56 8.23 1.19 11.18 2.32 6.87 2.65 9.24 6.44 9.34 6.6.16.16.485.674.485.674z"/></svg>',
+    "AWS Bedrock": '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2"><path d="M13.05 15.513h3.08c.214 0 .389.177.389.394v1.82a1.709 1.709 0 011.296 1.661c0 .943-.755 1.708-1.685 1.708a1.697 1.697 0 01-1.686-1.708c0-.807.554-1.484 1.297-1.662v-1.425h-2.69v4.663a.394.394 0 01-.188.338l-2.69 1.641a.386.386 0 01-.405-.002l-4.926-3.086a.397.397 0 01-.185-.336V16.3l-2.461-1.43A.395.395 0 012 14.555V9.406c0-.14.073-.27.192-.34l2.465-1.462V4.448c0-.129.062-.249.165-.322l.021-.014L9.77 1.058a.387.387 0 01.407 0l2.69 1.675c.115.072.185.2.185.336V7.6h3.856V5.683a1.71 1.71 0 01-1.296-1.662c0-.943.755-1.708 1.685-1.708.931 0 1.685.765 1.685 1.708 0 .807-.553 1.484-1.296 1.662v2.314c0 .214-.175.39-.389.391h-4.245v1.806h6.624a1.694 1.694 0 011.64-1.313c.93 0 1.685.764 1.685 1.707 0 .943-.754 1.708-1.685 1.708a1.695 1.695 0 01-1.64-1.314H13.05v1.937h4.953l.915 1.18c.255-.149.545-.227.84-.227.931 0 1.685.764 1.685 1.707 0 .943-.754 1.708-1.685 1.708-.93 0-1.685-.765-1.685-1.708 0-.346.102-.668.276-.937l-.724-.935H13.05v1.806zM9.973 1.856L7.93 3.122V6.09h-.778V3.604L5.435 4.669v2.945l2.11 1.36L9.712 7.61V5.334h.778V7.83c0 .136-.07.263-.184.335L7.963 9.638v2.081l1.422 1.009-.446.646-1.406-.998-1.53 1.005-.423-.66 1.605-1.055v-1.99L5.038 8.29l-2.26 1.34v1.676l1.972-1.189.398.677-2.37 1.429V14.3l2.166 1.258 2.27-1.368.397.677-2.176 1.311V19.3l1.876 1.175 2.365-1.426.398.678-2.017 1.216 1.918 1.201 2.298-1.403v-5.78l-4.758 2.893-.4-.675 5.158-3.136V3.289L9.972 1.856h.001zM16.13 18.47a.917.917 0 00-.908.913v.007c0 .507.406.918.908.918a.917.917 0 00.907-.913v-.013a.917.917 0 00-.907-.913v.001zm3.63-3.81a.917.917 0 00-.908.913v.007c0 .508.406.92.907.92a.917.917 0 00.908-.913v-.014a.917.917 0 00-.908-.913h.001zm1.555-4.99a.917.917 0 00-.908.913v.007c0 .507.407.918.908.918a.917.917 0 00.907-.913v-.013a.917.917 0 00-.907-.913v.001zM17.296 3.1a.917.917 0 00-.907.913v.007c0 .508.406.92.907.92a.917.917 0 00.908-.913v-.014a.917.917 0 00-.908-.913z" fill="#000" fill-rule="nonzero" transform="scale(21.33334)"/></svg>',
+    "Microsoft OneDrive": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-154.5063 -164.9805 1339.0546 989.883"><path d="M622.292 445.338l212.613-203.327C790.741 69.804 615.338-33.996 443.13 10.168a321.9 321.9 0 00-188.92 134.837c3.29-.083 368.082 300.333 368.082 300.333z" fill="#000"/><path d="M392.776 183.283l-.01.035A256.233 256.233 0 00257.5 144.921c-1.104 0-2.189.07-3.29.083C112.063 146.765-1.74 263.424.02 405.567a257.389 257.389 0 0046.244 144.04l318.528-39.894 244.21-196.915z" fill="#000"/><path d="M834.905 242.012c-4.674-.312-9.37-.528-14.123-.528a208.464 208.464 0 00-82.93 17.117l-.006-.022-128.844 54.22 142.041 175.456 253.934 61.728c54.8-101.732 16.752-228.625-84.98-283.424a209.23 209.23 0 00-85.09-24.546z" fill="#000"/><path d="M46.264 549.607C94.36 618.757 173.27 659.967 257.5 659.922h563.281c76.946.022 147.691-42.202 184.195-109.937L609.001 312.798z" fill="#000"/></svg>'
+  };
+
+  /* Genesis "G" logo as inline SVG data URI */
+  var G_LOGO_SVG = '<svg width="439" height="636" viewBox="0 0 439 636" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M219.063 635.861C260.358 635.861 297.625 627.297 330.862 610.169C364.099 593.041 390.286 568.328 409.423 536.029C428.559 504.22 438.128 467.273 438.128 425.187C438.128 424.819 438.126 424.451 438.124 424.084H311.624C311.626 424.401 311.628 424.72 311.628 425.039C311.628 457.782 302.257 482.949 283.516 500.542C265.31 518.135 243.088 526.933 216.851 526.933C190.613 526.933 168.659 518.135 150.988 500.542C133.853 482.949 125.285 457.782 125.285 425.039C125.285 424.72 125.287 424.401 125.289 424.084H0.00390625C0.002515 424.451 0 424.819 0 425.187C1.17681e-05 467.273 9.56848 504.22 28.7051 536.029C47.8416 568.328 74.0285 593.041 107.266 610.169C140.503 627.297 177.769 635.861 219.063 635.861Z" fill="white"/>' +
+    '<path d="M219.063 2.00195C220.875 2.00195 222.679 2.01879 224.476 2.05176V110.636H219.25C192.477 110.636 170.255 119.432 152.585 137.025C134.915 154.13 126.079 179.298 126.079 212.529C126.079 245.272 134.646 270.44 151.781 288.033C169.452 305.626 191.406 314.423 217.644 314.423C243.881 314.423 266.104 305.626 284.31 288.033C303.051 270.44 312.422 245.272 312.422 212.529V174.861H435.345C437.2 186.968 438.128 199.573 438.128 212.677C438.128 254.763 428.307 291.955 408.667 324.254C389.53 356.063 363.092 380.531 329.352 397.659C296.114 414.787 258.848 423.352 217.553 423.352C176.258 423.352 138.992 414.787 105.755 397.659C73.0213 380.531 47.0858 356.063 27.9492 324.254C9.31622 292.445 0 255.252 0 212.677C1.17681e-05 170.591 9.56848 133.643 28.7051 101.834C47.8416 69.5355 74.0285 44.8224 107.266 27.6943C140.503 10.5663 177.769 2.00201 219.063 2.00195Z" fill="white"/>' +
+    '<path d="M342.285 135.594C328.981 135.594 316.976 132.838 306.269 127.326C295.723 121.814 287.368 113.94 281.203 103.703C275.201 93.4668 272.199 81.498 272.199 67.7969C272.199 54.2533 275.282 42.3632 281.447 32.1268C287.612 21.7328 296.048 13.7799 306.755 8.26792C317.463 2.75597 329.468 0 342.771 0C356.075 0 368.08 2.75597 378.788 8.26792C389.495 13.7799 397.931 21.7328 404.096 32.1268C410.261 42.3632 413.344 54.2533 413.344 67.7969C413.344 81.3405 410.18 93.3093 403.853 103.703C397.688 113.94 389.171 121.814 378.301 127.326C367.593 132.838 355.588 135.594 342.285 135.594Z" fill="#FF6E06"/>' +
+    '</svg>';
+
+  /* ================================================================
+     ICON PRELOADING
+     ================================================================ */
+  function monoSvg(raw, color) {
+    var s = raw.replace(/fill="[^"]*"/g, 'fill="' + color + '"').replace(/stroke="[^"]*"/g, 'stroke="' + color + '"');
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+  }
+
+  var imageCache = {};
+  function preloadIcons() {
+    var allBrands = {};
+    Object.keys(ICON_SLUGS).forEach(function (k) { allBrands[k] = true; });
+    Object.keys(LOCAL_SVG).forEach(function (k) { allBrands[k] = true; });
+
+    Object.keys(allBrands).forEach(function (label) {
+      if (imageCache[label]) return;
+      imageCache[label] = { white: null, orange: null };
+      if (LOCAL_SVG[label]) {
+        var iw = new Image(); iw.src = monoSvg(LOCAL_SVG[label], "#ffffff");
+        iw.onload = function () { imageCache[label].white = iw; };
+        var io = new Image(); io.src = monoSvg(LOCAL_SVG[label], "#ff6b2b");
+        io.onload = function () { imageCache[label].orange = io; };
+      } else if (ICON_SLUGS[label]) {
+        var slug = ICON_SLUGS[label];
+        var iw2 = new Image(); iw2.crossOrigin = "anonymous";
+        iw2.src = "https://cdn.simpleicons.org/" + slug + "/ffffff";
+        iw2.onload = function () { imageCache[label].white = iw2; };
+        var io2 = new Image(); io2.crossOrigin = "anonymous";
+        io2.src = "https://cdn.simpleicons.org/" + slug + "/ff6b2b";
+        io2.onload = function () { imageCache[label].orange = io2; };
+      }
+    });
+  }
+  preloadIcons();
+
+  var gLogoImg = null;
+  (function () {
+    var img = new Image();
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(G_LOGO_SVG);
+    img.onload = function () { gLogoImg = img; };
+  })();
+
+  /* ================================================================
+     LAYOUT: connectors on ellipse around center
+     ================================================================ */
+  function buildLayout() {
+    var ordered = [];
+    CAT_ORDER.forEach(function (cat) {
+      (CONNECTOR_CATS[cat] || []).forEach(function (c) {
+        ordered.push({ label: c, cat: cat });
+      });
+    });
+    var n = ordered.length;
+    return ordered.map(function (c, i) {
+      var baseAngle = (i / n) * Math.PI * 2 - Math.PI / 2;
+      var ring = (i % 3 === 0) ? 0.78 : (i % 3 === 1) ? 0.92 : 0.64;
+      return { label: c.label, cat: c.cat, angle: baseAngle, ring: ring };
+    });
+  }
+
+  var LAYOUT = buildLayout();
+
+  /* ================================================================
+     DOM SETUP
+     ================================================================ */
+  var root = document.getElementById("integrations-cloud");
+  if (!root) {
+    console.warn("[IntegrationsCloud] No element with id='integrations-cloud' found.");
+    return;
+  }
+
+  // Wrapper
+  root.style.cssText = "width:100%;display:flex;flex-direction:column;align-items:center;gap:40px;padding:64px 16px;box-sizing:border-box;font-family:'Inter',sans-serif;";
+
+  // Header
+  var header = document.createElement("div");
+  header.style.cssText = "display:flex;flex-direction:column;gap:16px;align-items:center;max-width:600px;text-align:center;";
+  header.innerHTML =
+    '<p style="text-transform:uppercase;letter-spacing:0.26px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:#ff6e06;line-height:1.3;margin:0;">Integrations</p>' +
+    '<p style="font-family:\'Inter\',sans-serif;font-size:56px;color:white;line-height:1.02;letter-spacing:-3px;margin:0;">Works with your Entire Enterprise Data Stack</p>' +
+    '<p style="font-family:\'Inter\',sans-serif;font-size:17px;color:#949494;line-height:1.6;letter-spacing:-0.17px;max-width:460px;margin:0;">Choose environment and deploy our autonomous AI Agents wherever your data engineering happens. Genesis integrates natively with your existing data stack.</p>';
+  root.appendChild(header);
+
+  // Canvas container
+  var container = document.createElement("div");
+  container.style.cssText = "position:relative;width:100%;max-width:1100px;height:620px;overflow:hidden;border-radius:16px;cursor:crosshair;background:radial-gradient(ellipse at 50% 45%,rgba(25,15,6,0.6) 0%,#06060a 70%);border:1px solid rgba(255,255,255,0.04);";
+  root.appendChild(container);
+
+  var canvas = document.createElement("canvas");
+  canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;";
+  container.appendChild(canvas);
+
+  // Category labels bar
+  var catBar = document.createElement("div");
+  catBar.style.cssText = "position:absolute;top:20px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10;pointer-events:none;";
+  container.appendChild(catBar);
+
+  var catElements = {};
+  var labelHoveredCat = null;
+
+  CAT_ORDER.forEach(function (cat) {
+    var hex = CAT_HEX[cat];
+    var el = document.createElement("div");
+    el.style.cssText = "pointer-events:auto;display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;transition:all 0.2s;border:1px solid " + hex + "15;background:" + hex + "06;opacity:0.45;";
+    el.innerHTML =
+      '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + hex + ';transition:all 0.2s;"></span>' +
+      '<span style="text-transform:uppercase;letter-spacing:0.1em;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:rgba(255,255,255,0.5);transition:all 0.2s;">' + cat + '</span>';
+
+    el.addEventListener("mouseenter", function () {
+      labelHoveredCat = cat;
+    });
+    el.addEventListener("mouseleave", function () {
+      labelHoveredCat = null;
+    });
+
+    catBar.appendChild(el);
+    catElements[cat] = { el: el, dot: el.children[0], text: el.children[1], hex: hex };
+  });
+
+  // Edge fades
+  var fades = [
+    "position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 68%,rgba(6,6,10,0.5) 88%,#06060a 100%);",
+    "position:absolute;bottom:0;left:0;right:0;height:16px;pointer-events:none;background:linear-gradient(to top,#06060a,transparent);",
+    "position:absolute;top:0;left:0;right:0;height:16px;pointer-events:none;background:linear-gradient(to bottom,#06060a,transparent);",
+    "position:absolute;top:0;left:0;bottom:0;width:16px;pointer-events:none;background:linear-gradient(to right,#06060a,transparent);",
+    "position:absolute;top:0;right:0;bottom:0;width:16px;pointer-events:none;background:linear-gradient(to left,#06060a,transparent);"
+  ];
+  fades.forEach(function (css) {
+    var d = document.createElement("div");
+    d.style.cssText = css;
+    container.appendChild(d);
+  });
+
+  /* ================================================================
+     STATE
+     ================================================================ */
+  var mouse = null;
+  var time = 0;
+  var animId = 0;
+  var centerHoverAlpha = 0;
+  var connHoverAlphas = LAYOUT.map(function () { return 0; });
+  var catHighlightMap = {};
+  var bubbleAlpha = 0;
+  var lastActiveCat = null;
+  var lastCenterHovered = false;
+
+  container.addEventListener("mousemove", function (e) {
+    var rect = container.getBoundingClientRect();
+    mouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  });
+  container.addEventListener("mouseleave", function () {
+    mouse = null;
+    labelHoveredCat = null;
+    updateCatLabels(null, false);
+  });
+
+  /* ================================================================
+     CATEGORY LABEL VISUAL UPDATE
+     ================================================================ */
+  function updateCatLabels(activeCat, centerHovered) {
+    if (activeCat === lastActiveCat && centerHovered === lastCenterHovered) return;
+    lastActiveCat = activeCat;
+    lastCenterHovered = centerHovered;
+
+    CAT_ORDER.forEach(function (cat) {
+      var c = catElements[cat];
+      var highlighted = (activeCat === cat) || centerHovered;
+      c.el.style.border = "1px solid " + c.hex + (highlighted ? "44" : "15");
+      c.el.style.background = highlighted ? c.hex + "12" : c.hex + "06";
+      c.el.style.opacity = highlighted ? "1" : "0.45";
+      c.dot.style.boxShadow = highlighted ? "0 0 8px " + c.hex + "88" : "none";
+      c.text.style.color = highlighted ? c.hex : "rgba(255,255,255,0.5)";
+    });
+  }
+
+  /* ================================================================
+     RENDER LOOP
+     ================================================================ */
+  function render() {
+    time += 0.016;
+    var t = time;
+    var rect = container.getBoundingClientRect();
+    var w = rect.width;
+    var h = rect.height;
+    var dpr = window.devicePixelRatio || 1;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    var ctx = canvas.getContext("2d");
+    if (!ctx) { animId = requestAnimationFrame(render); return; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var cx = w / 2, cy = h / 2;
+    var radiusX = Math.min(w * 0.42, 440);
+    var radiusY = Math.min(h * 0.40, 250);
+    var centerR = 58;
+
+    /* Connector positions */
+    var positions = LAYOUT.map(function (node) {
+      var rx = radiusX * node.ring;
+      var ry = radiusY * node.ring;
+      return { px: cx + Math.cos(node.angle) * rx, py: cy + Math.sin(node.angle) * ry };
+    });
+
+    /* Hit detection */
+    var hoveredConnIdx = null;
+    var hoveredCenter = false;
+    if (mouse) {
+      var inSquare = Math.abs(mouse.x - cx) < centerR + 12 && Math.abs(mouse.y - cy) < centerR + 12;
+      if (inSquare) {
+        hoveredCenter = true;
+      } else {
+        var minDist = Infinity;
+        for (var i = 0; i < positions.length; i++) {
+          var p = positions[i];
+          var d = Math.sqrt(Math.pow(mouse.x - p.px, 2) + Math.pow(mouse.y - p.py, 2));
+          if (d < minDist) { minDist = d; hoveredConnIdx = i; }
+        }
+        if (minDist > 55) hoveredConnIdx = null;
+      }
+    }
+
+    /* Lerp smooth values */
+    var lerpSpeed = 0.1;
+    centerHoverAlpha += ((hoveredCenter ? 1 : 0) - centerHoverAlpha) * lerpSpeed;
+    bubbleAlpha += ((hoveredCenter ? 1 : 0) - bubbleAlpha) * 0.07;
+
+    var hoveredCat = hoveredConnIdx !== null ? LAYOUT[hoveredConnIdx].cat : labelHoveredCat;
+    for (var i = 0; i < LAYOUT.length; i++) {
+      var isThisHovered = hoveredConnIdx === i;
+      var isSameCat = hoveredCat !== null && LAYOUT[i].cat === hoveredCat;
+      var target = isThisHovered ? 1 : isSameCat ? 0.7 : 0;
+      var cur = connHoverAlphas[i] || 0;
+      connHoverAlphas[i] = cur + (target - cur) * lerpSpeed;
+    }
+    Object.keys(CONNECTOR_CATS).forEach(function (cat) {
+      var tgt = cat === hoveredCat ? 1 : 0;
+      catHighlightMap[cat] = (catHighlightMap[cat] || 0) + (tgt - (catHighlightMap[cat] || 0)) * lerpSpeed;
+    });
+
+    var cha = centerHoverAlpha;
+    var anyConnHovered = hoveredConnIdx !== null || labelHoveredCat !== null;
+
+    /* 1. Lines: connector → center */
+    var connIconR = 16;
+    for (var i = 0; i < LAYOUT.length; i++) {
+      var p = positions[i];
+      var ha = connHoverAlphas[i] || 0;
+      var catColor = CAT_COLORS[LAYOUT[i].cat] || "255,255,255";
+
+      var dx = p.px - cx, dy = p.py - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      var nx = dx / dist, ny = dy / dist;
+
+      var gap = 4;
+      var half = centerR + gap;
+      var tMin = Infinity;
+      if (Math.abs(nx) > 1e-6) { var tX = half / Math.abs(nx); if (tX < tMin) tMin = tX; }
+      if (Math.abs(ny) > 1e-6) { var tY = half / Math.abs(ny); if (tY < tMin) tMin = tY; }
+      var startX = cx + nx * tMin;
+      var startY = cy + ny * tMin;
+      var endX = p.px - nx * (connIconR + 4);
+      var endY = p.py - ny * (connIconR + 4);
+
+      var lineAlpha, lineColor, lineWidth;
+
+      if (hoveredCenter) {
+        lineAlpha = 0.15 + cha * 0.45;
+        lineColor = "rgba(255,107,43," + lineAlpha + ")";
+        lineWidth = 1.0 + cha * 0.8;
+        if (cha > 0.1) {
+          ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY);
+          ctx.strokeStyle = "rgba(255,107,43," + (cha * 0.08) + ")";
+          ctx.lineWidth = 8; ctx.stroke();
+        }
+      } else if (anyConnHovered) {
+        if (ha > 0.01) {
+          lineAlpha = 0.06 + ha * 0.4;
+          lineColor = "rgba(" + catColor + "," + lineAlpha + ")";
+          lineWidth = 0.8 + ha * 1.0;
+          if (ha > 0.1) {
+            ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY);
+            ctx.strokeStyle = "rgba(" + catColor + "," + (ha * 0.06) + ")";
+            ctx.lineWidth = 8; ctx.stroke();
+          }
+        } else {
+          lineAlpha = 0.04;
+          lineColor = "rgba(255,255,255," + lineAlpha + ")";
+          lineWidth = 0.5;
+        }
+      } else {
+        lineAlpha = 0.12;
+        lineColor = "rgba(255,255,255," + lineAlpha + ")";
+        lineWidth = 0.7;
+      }
+
+      ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY);
+      ctx.strokeStyle = lineColor; ctx.lineWidth = lineWidth; ctx.stroke();
+    }
+
+    /* 2. Protective bubble (on center hover) */
+    var ba = bubbleAlpha;
+    if (ba > 0.01) {
+      var rectW = radiusX * 2.16;
+      var rawRectH = radiusY * 2.16;
+      var rawRectY = cy - rawRectH / 2;
+      var minTop = 56;
+      var rectY = Math.max(rawRectY, minTop);
+      var rectH = rawRectH - (rectY - rawRectY);
+      var rectX = cx - rectW / 2;
+
+      ctx.beginPath(); ctx.rect(rectX, rectY, rectW, rectH);
+      ctx.strokeStyle = "rgba(255,255,255," + (ba * 0.16) + ")";
+      ctx.lineWidth = 1.5; ctx.setLineDash([6, 8]); ctx.stroke(); ctx.setLineDash([]);
+
+      var shieldGrad = ctx.createRadialGradient(cx, cy, centerR, cx, cy, Math.max(rectW, rectH) / 2);
+      shieldGrad.addColorStop(0, "rgba(255,255,255," + (ba * 0.025) + ")");
+      shieldGrad.addColorStop(0.5, "rgba(255,255,255," + (ba * 0.012) + ")");
+      shieldGrad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.beginPath(); ctx.rect(rectX, rectY, rectW, rectH);
+      ctx.fillStyle = shieldGrad; ctx.fill();
+
+      if (ba > 0.2) {
+        var labelY = rectY + rectH + 20;
+        ctx.font = "10px 'JetBrains Mono','Courier New',monospace";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        var text = "SECURE CONNECTION TO ALL INTEGRATIONS";
+        var tw = ctx.measureText(text).width;
+        var padH = 12, pillH = 24;
+
+        ctx.fillStyle = "rgba(255,255,255," + (ba * 0.05) + ")";
+        ctx.beginPath();
+        roundRect(ctx, cx - tw / 2 - padH, labelY - pillH / 2, tw + padH * 2, pillH, 6);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255," + (ba * 0.12) + ")";
+        ctx.lineWidth = 1; ctx.stroke();
+
+        ctx.fillStyle = "rgba(255,255,255," + (ba * 0.75) + ")";
+        ctx.font = "10px 'JetBrains Mono',monospace";
+        ctx.fillText(text, cx, labelY);
+      }
+    }
+
+    /* 3. Central Genesis square */
+    (function () {
+      var sqSize = centerR * 2;
+      var sqX = cx - centerR;
+      var sqY = cy - centerR;
+
+      if (cha > 0.01) {
+        var glowR = centerR + 30 + cha * 20;
+        var g = ctx.createRadialGradient(cx, cy, centerR * 0.5, cx, cy, glowR);
+        g.addColorStop(0, "rgba(255,107,43," + (cha * 0.22) + ")");
+        g.addColorStop(0.5, "rgba(255,107,43," + (cha * 0.07) + ")");
+        g.addColorStop(1, "rgba(255,107,43,0)");
+        ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+        ctx.fillStyle = g; ctx.fill();
+      }
+
+      ctx.beginPath(); ctx.rect(sqX, sqY, sqSize, sqSize);
+      ctx.fillStyle = "rgba(255,107,43," + (cha * 0.18) + ")";
+      ctx.fill();
+
+      ctx.beginPath(); ctx.rect(sqX, sqY, sqSize, sqSize);
+      ctx.strokeStyle = cha > 0.1
+        ? "rgba(255,107,43," + (0.2 + cha * 0.45) + ")"
+        : "rgba(255,255,255,0.15)";
+      ctx.lineWidth = 1.5; ctx.stroke();
+
+      if (gLogoImg) {
+        var logoH = centerR * 1.2;
+        var logoW = logoH * (439 / 636);
+        ctx.save();
+        ctx.globalAlpha = 0.85 + cha * 0.15;
+        ctx.drawImage(gLogoImg, cx - logoW / 2, cy - logoH / 2, logoW, logoH);
+        ctx.restore();
+      }
+    })();
+
+    /* 4. Connector nodes */
+    for (var i = 0; i < LAYOUT.length; i++) {
+      var node = LAYOUT[i];
+      var p = positions[i];
+      var ha = connHoverAlphas[i] || 0;
+      var catColor = CAT_COLORS[node.cat] || "255,255,255";
+      var iconSize = 22 + ha * 6;
+
+      var opacity, labelOpacity, useOrange;
+
+      if (hoveredCenter) {
+        opacity = 0.5 + cha * 0.5;
+        labelOpacity = 0.2 + cha * 0.5;
+        useOrange = cha > 0.3;
+      } else if (anyConnHovered) {
+        if (ha > 0.01) {
+          opacity = 0.4 + ha * 0.6;
+          labelOpacity = 0.1 + ha * 0.8;
+          useOrange = false;
+        } else {
+          opacity = 0.18;
+          labelOpacity = 0;
+          useOrange = false;
+        }
+      } else {
+        opacity = 0.7;
+        labelOpacity = 0.35;
+        useOrange = false;
+      }
+
+      var glowR = 32 + ha * 16;
+      var glowGrad = ctx.createRadialGradient(p.px, p.py, 0, p.px, p.py, glowR);
+      if (hoveredCenter && cha > 0.1) {
+        glowGrad.addColorStop(0, "rgba(255,107,43," + (0.15 * opacity) + ")");
+        glowGrad.addColorStop(0.5, "rgba(255,107,43," + (0.04 * opacity) + ")");
+        glowGrad.addColorStop(1, "rgba(255,107,43,0)");
+      } else if (ha > 0.1) {
+        glowGrad.addColorStop(0, "rgba(" + catColor + "," + (0.2 * ha) + ")");
+        glowGrad.addColorStop(0.5, "rgba(" + catColor + "," + (0.05 * ha) + ")");
+        glowGrad.addColorStop(1, "rgba(" + catColor + ",0)");
+      } else {
+        glowGrad.addColorStop(0, "rgba(255,140,30," + (0.08 * opacity) + ")");
+        glowGrad.addColorStop(0.5, "rgba(255,100,10," + (0.02 * opacity) + ")");
+        glowGrad.addColorStop(1, "rgba(255,90,0,0)");
+      }
+      ctx.beginPath(); ctx.arc(p.px, p.py, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = glowGrad; ctx.fill();
+
+      var img = useOrange
+        ? (imageCache[node.label] && imageCache[node.label].orange)
+        : (imageCache[node.label] && imageCache[node.label].white);
+      if (img) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.drawImage(img, p.px - iconSize / 2, p.py - iconSize / 2, iconSize, iconSize);
+        ctx.restore();
+      } else {
+        var r = iconSize * 0.42;
+        var color = useOrange
+          ? "rgba(255,107,43," + opacity + ")"
+          : ha > 0.1
+            ? "rgba(" + catColor + "," + opacity + ")"
+            : "rgba(255,255,255," + (opacity * 0.7) + ")";
+        ctx.beginPath(); ctx.arc(p.px, p.py, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color; ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.font = Math.round(iconSize * 0.45) + "px 'JetBrains Mono','Courier New',monospace";
+        ctx.fillStyle = color;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(node.label.charAt(0).toUpperCase(), p.px, p.py);
+      }
+
+      if (labelOpacity > 0.02) {
+        ctx.font = "10px 'JetBrains Mono','Courier New',monospace";
+        var labelColor = useOrange
+          ? "rgba(255,107,43," + labelOpacity + ")"
+          : ha > 0.1
+            ? "rgba(" + catColor + "," + labelOpacity + ")"
+            : "rgba(255,255,255," + labelOpacity + ")";
+        ctx.fillStyle = labelColor;
+        ctx.textAlign = "center"; ctx.textBaseline = "top";
+        ctx.fillText(node.label.toUpperCase(), p.px, p.py + iconSize / 2 + 6);
+      }
+    }
+
+    /* 6. Subtle mouse glow */
+    if (mouse) {
+      var g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 160);
+      g.addColorStop(0, "rgba(255,110,6,0.025)");
+      g.addColorStop(1, "rgba(255,110,6,0)");
+      ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 160, 0, Math.PI * 2);
+      ctx.fillStyle = g; ctx.fill();
+    }
+
+    updateCatLabels(hoveredCat, hoveredCenter);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  /* roundRect polyfill for older browsers */
+  function roundRect(ctx, x, y, w, h, r) {
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    }
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  animId = requestAnimationFrame(render);
+})();
