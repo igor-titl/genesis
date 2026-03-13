@@ -173,18 +173,9 @@
   // Wrapper
   root.style.cssText = "width:100%;display:flex;flex-direction:column;align-items:center;gap:40px;padding:64px 16px;box-sizing:border-box;font-family:'Inter',sans-serif;";
 
-  // Header
-  var header = document.createElement("div");
-  header.style.cssText = "display:flex;flex-direction:column;gap:16px;align-items:center;max-width:600px;text-align:center;";
-  header.innerHTML =
-    '<p style="text-transform:uppercase;letter-spacing:0.26px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:#ff6e06;line-height:1.3;margin:0;">Integrations</p>' +
-    '<p style="font-family:\'Inter\',sans-serif;font-size:56px;color:white;line-height:1.02;letter-spacing:-3px;margin:0;">Works with your Entire Enterprise Data Stack</p>' +
-    '<p style="font-family:\'Inter\',sans-serif;font-size:17px;color:#949494;line-height:1.6;letter-spacing:-0.17px;max-width:460px;margin:0;">Choose environment and deploy our autonomous AI Agents wherever your data engineering happens. Genesis integrates natively with your existing data stack.</p>';
-  root.appendChild(header);
-
   // Canvas container
   var container = document.createElement("div");
-  container.style.cssText = "position:relative;width:100%;max-width:1100px;height:620px;overflow:hidden;border-radius:16px;cursor:crosshair;background:radial-gradient(ellipse at 50% 45%,rgba(25,15,6,0.6) 0%,#06060a 70%);border:1px solid rgba(255,255,255,0.04);";
+  container.style.cssText = "position:relative;width:100%;max-width:1100px;height:620px;overflow:hidden;border-radius:16px;cursor:crosshair;border:1px solid rgba(255,255,255,0.04);";
   root.appendChild(container);
 
   var canvas = document.createElement("canvas");
