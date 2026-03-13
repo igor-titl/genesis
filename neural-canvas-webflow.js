@@ -559,10 +559,6 @@ function boot() {
     mouseX = -9999; mouseY = -9999; hoveredHub = null;
     if (isDragging) isDragging = false;
   }
-  function onWheel(e) {
-    e.preventDefault();
-  }
-
   var pinchDist = 0;
   function onTouchStart(e) {
     if (!introDone) return;
@@ -596,7 +592,7 @@ function boot() {
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);
   canvas.addEventListener("mouseleave", onMouseLeave);
-  canvas.addEventListener("wheel", onWheel, { passive: false });
+
   canvas.addEventListener("touchstart", onTouchStart, { passive: false });
   canvas.addEventListener("touchmove", onTouchMove, { passive: false });
   canvas.addEventListener("touchend", onTouchEnd);
