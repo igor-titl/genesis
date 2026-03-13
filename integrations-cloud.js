@@ -171,7 +171,7 @@
   }
 
   // Wrapper
-  root.style.cssText = "width:100%;display:flex;flex-direction:column;align-items:center;gap:40px;padding:64px 16px;box-sizing:border-box;font-family:'Inter',sans-serif;";
+  root.style.cssText = "width:100%;display:flex;flex-direction:column;align-items:center;box-sizing:border-box;";
 
   // Canvas container
   var container = document.createElement("div");
