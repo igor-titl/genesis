@@ -175,7 +175,7 @@
 
   // Canvas container
   var container = document.createElement("div");
-  container.style.cssText = "position:relative;width:100%;height:100%;overflow:hidden;cursor:crosshair;background:transparent;";
+  container.style.cssText = "position:relative;width:100%;height:100%;min-height:620px;overflow:hidden;cursor:crosshair;background:transparent;";
   root.appendChild(container);
 
   var canvas = document.createElement("canvas");
@@ -193,7 +193,7 @@
   CAT_ORDER.forEach(function (cat) {
     var hex = CAT_HEX[cat];
     var el = document.createElement("div");
-    el.style.cssText = "pointer-events:auto;display:flex;align-items:center;gap:8px;padding:0;cursor:pointer;transition:all 0.2s;border:none;background:transparent;opacity:0.45;";
+    el.style.cssText = "pointer-events:auto;display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;transition:all 0.2s;border:1px solid " + hex + "15;background:" + hex + "06;opacity:0.45;";
     el.innerHTML =
       '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + hex + ';transition:all 0.2s;"></span>' +
       '<span style="text-transform:uppercase;letter-spacing:0.1em;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:rgba(255,255,255,0.5);transition:all 0.2s;">' + cat + '</span>';
@@ -245,8 +245,8 @@
     CAT_ORDER.forEach(function (cat) {
       var c = catElements[cat];
       var highlighted = (activeCat === cat) || centerHovered;
-      c.el.style.border = "none";
-      c.el.style.background = "transparent";
+      c.el.style.border = "1px solid " + c.hex + (highlighted ? "44" : "15");
+      c.el.style.background = highlighted ? c.hex + "12" : c.hex + "06";
       c.el.style.opacity = highlighted ? "1" : "0.45";
       c.dot.style.boxShadow = highlighted ? "0 0 8px " + c.hex + "88" : "none";
       c.text.style.color = highlighted ? c.hex : "rgba(255,255,255,0.5)";
@@ -272,8 +272,8 @@
     ctx.clearRect(0, 0, w, h);
 
     var cx = w / 2, cy = h / 2;
-    var radiusX = Math.min(w * 0.42, 440);
-    var radiusY = Math.min(h * 0.40, 250);
+    var radiusX = w * 0.42;
+    var radiusY = h * 0.40;
     var centerR = 58;
 
     /* Connector positions */
