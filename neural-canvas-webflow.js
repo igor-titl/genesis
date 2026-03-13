@@ -561,8 +561,6 @@ function boot() {
   }
   function onWheel(e) {
     e.preventDefault();
-    var delta = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY;
-    targetCamDist = Math.max(480, Math.min(1400, targetCamDist + delta * 0.45));
   }
 
   var pinchDist = 0;
@@ -576,9 +574,6 @@ function boot() {
       dragVelX = 0; dragVelY = 0; pinchDist = 0;
     } else if (e.touches.length === 2) {
       isDragging = false;
-      var dx = e.touches[1].clientX - e.touches[0].clientX;
-      var dy = e.touches[1].clientY - e.touches[0].clientY;
-      pinchDist = Math.sqrt(dx * dx + dy * dy);
     }
   }
   function onTouchMove(e) {
@@ -590,12 +585,6 @@ function boot() {
       camRotX = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, camRotX));
       dragVelX = dy * 0.005; dragVelY = dx * 0.005;
       dragLastX = t.clientX; dragLastY = t.clientY;
-    } else if (e.touches.length === 2) {
-      var dx2 = e.touches[1].clientX - e.touches[0].clientX;
-      var dy2 = e.touches[1].clientY - e.touches[0].clientY;
-      var dd = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-      if (pinchDist > 0) targetCamDist = Math.max(300, Math.min(1400, targetCamDist * (pinchDist / dd)));
-      pinchDist = dd;
     }
   }
   function onTouchEnd(e) {
