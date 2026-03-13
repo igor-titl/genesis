@@ -1,22 +1,14 @@
 {
   "name": "neural-canvas-webflow",
   "version": "1.0.0",
-  "type": "module",
-  "description": "NeuralCanvas — interactive 3D node network for Webflow Cloud",
+  "description": "NeuralCanvas — interactive 3D node network animation for Webflow",
+  "main": "neural-canvas-webflow.js",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro build && wrangler dev",
-    "astro": "astro"
+    "build": "npx terser neural-canvas-webflow.js -o neural-canvas-webflow.min.js --compress --mangle"
   },
-  "dependencies": {
-    "@astrojs/cloudflare": "^12.5.0",
-    "@astrojs/react": "^4.2.1",
-    "astro": "^5.7.5",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  },
+  "keywords": ["webflow", "canvas", "animation"],
+  "license": "MIT",
   "devDependencies": {
-    "wrangler": "^4.14.0"
+    "terser": "^5.39.0"
   }
 }

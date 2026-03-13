@@ -1,7 +1,18 @@
 /**
- * NeuralCanvas — Interactive 3D node network animation
+ * NeuralCanvas — Vanilla JS (Webflow-ready)
+ *
+ * Usage in Webflow:
+ *   1. Add a Div Block (100% width, 100vh height, background #01020A)
+ *   2. Inside it, add an HTML Embed with: <canvas id="neural-canvas" style="width:100%;height:100%;display:block;"></canvas>
+ *   3. Add fonts in Project Settings → Custom Code → Head:
+ *      <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+ *   4. Add this script in Project Settings → Custom Code → Footer:
+ *      <script src="https://cdn.jsdelivr.net/gh/igor-titl/genesis@main/neural-canvas-webflow.min.js" defer></script>
  */
-/* ── Constants ──────────────────────────────────────────────── */
+(function () {
+  "use strict";
+
+  /* ── Constants ──────────────────────────────────────────────── */
 var C = { r: 255, g: 106, b: 0 };
 var NODE_COUNT = 63;
 var CANVAS_OFFSET_X = 0.62;
@@ -1081,4 +1092,9 @@ function boot() {
   animate();
 }
 
-boot();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
