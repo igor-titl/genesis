@@ -175,7 +175,7 @@
 
   // Canvas container
   var container = document.createElement("div");
-  container.style.cssText = "position:relative;width:100%;max-width:1100px;height:620px;overflow:hidden;cursor:crosshair;background:transparent;";
+  container.style.cssText = "position:relative;width:100%;height:100%;overflow:hidden;cursor:crosshair;background:transparent;";
   root.appendChild(container);
 
   var canvas = document.createElement("canvas");
