@@ -972,8 +972,7 @@ function boot() {
 
   /* ── Main loop ───────────────────────────────────────────── */
   function animate() {
-    ctx.fillStyle = "rgba(1,2,10,0.88)";
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
     time++;
 
     var defaultCX = width * CANVAS_OFFSET_X;
