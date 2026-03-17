@@ -387,9 +387,16 @@
     ctx.setTransform(canvasDpr, 0, 0, canvasDpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    var cx = w / 2, cy = h / 2;
+    // Keep the cloud from colliding with the category bar (esp. when it wraps on mobile)
+    var catBarH = 0;
+    try { catBarH = (catBar && catBar.getBoundingClientRect) ? catBar.getBoundingClientRect().height : 0; } catch (e) { catBarH = 0; }
+    var safeTop = Math.max(0, catBarH + ((w <= 520 || isCoarsePointer) ? 18 : 28));
+    var availH = Math.max(1, h - safeTop);
+
+    var cx = w / 2, cy = safeTop + availH / 2;
     var radiusX = profile.radiusX;
-    var radiusY = profile.radiusY;
+    // Recompute Y radius from available height so the layout stays balanced
+    var radiusY = availH * ((w <= 520) ? 0.44 : 0.40);
     var centerR = profile.centerR;
 
     /* Connector positions */
@@ -502,7 +509,7 @@
       var rectW = radiusX * 2.16;
       var rawRectH = radiusY * 2.16;
       var rawRectY = cy - rawRectH / 2;
-      var minTop = (w <= 520) ? 44 : 56;
+      var minTop = Math.max(safeTop - 8, (w <= 520) ? 44 : 56);
       var rectY = Math.max(rawRectY, minTop);
       var rectH = rawRectH - (rectY - rawRectY);
       var rectX = cx - rectW / 2;
