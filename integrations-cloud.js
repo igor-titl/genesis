@@ -224,10 +224,98 @@
   var lastActiveCat = null;
   var lastCenterHovered = false;
 
+  // Responsive / performance state
+  var ctx = null;
+  var canvasW = 0;
+  var canvasH = 0;
+  var canvasDpr = 1;
+  var isCoarsePointer = false;
+
+  function getCoarsePointer() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+  function getProfile(w, h) {
+    var small = w <= 520;
+    var tiny = w <= 380;
+    return {
+      // Cap DPR to keep mobile crisp but fast
+      dpr: clamp((window.devicePixelRatio || 1), 1, small ? 2 : 2.5),
+      // Layout scale tweaks
+      radiusX: w * (small ? 0.46 : 0.42),
+      radiusY: h * (small ? 0.34 : 0.40),
+      centerR: small ? (tiny ? 36 : 42) : 58,
+      connIconR: small ? 14 : 16,
+      iconBase: small ? 18 : 22,
+      iconGrow: small ? 4 : 6,
+      // Hit radius a bit tighter on mobile so taps don't feel "random"
+      hitMaxDist: small ? 44 : 55,
+      // Reduce heavyweight glow radii on mobile
+      mouseGlowR: small ? 110 : 160,
+      mouseGlowAlpha: small ? 0.018 : 0.025
+    };
+  }
+
+  function applyResponsiveContainer() {
+    isCoarsePointer = getCoarsePointer();
+    // Smaller minimum height on mobile so it doesn't look stretched/empty
+    var w = container.getBoundingClientRect().width || window.innerWidth || 0;
+    if (w && w <= 520) {
+      container.style.minHeight = "420px";
+      container.style.cursor = "default";
+      catBar.style.top = "12px";
+      catBar.style.gap = "8px";
+    } else {
+      container.style.minHeight = "620px";
+      container.style.cursor = "crosshair";
+      catBar.style.top = "20px";
+      catBar.style.gap = "10px";
+    }
+  }
+
+  function resizeCanvasIfNeeded() {
+    var rect = container.getBoundingClientRect();
+    var w = Math.max(1, Math.round(rect.width));
+    var h = Math.max(1, Math.round(rect.height));
+    var profile = getProfile(w, h);
+    var dpr = profile.dpr;
+    var nextW = Math.round(w * dpr);
+    var nextH = Math.round(h * dpr);
+    if (nextW === canvasW && nextH === canvasH && dpr === canvasDpr && ctx) return;
+
+    canvasDpr = dpr;
+    canvasW = nextW;
+    canvasH = nextH;
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    ctx = canvas.getContext("2d");
+  }
+
   container.addEventListener("mousemove", function (e) {
     var rect = container.getBoundingClientRect();
     mouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
   });
+  container.addEventListener("touchstart", function (e) {
+    if (!e.touches || !e.touches.length) return;
+    var rect = container.getBoundingClientRect();
+    mouse = { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+  }, { passive: true });
+  container.addEventListener("touchmove", function (e) {
+    if (!e.touches || !e.touches.length) return;
+    var rect = container.getBoundingClientRect();
+    mouse = { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+  }, { passive: true });
+  container.addEventListener("touchend", function () {
+    mouse = null;
+    labelHoveredCat = null;
+    updateCatLabels(null, false);
+  }, { passive: true });
   container.addEventListener("mouseleave", function () {
     mouse = null;
     labelHoveredCat = null;
@@ -262,19 +350,18 @@
     var rect = container.getBoundingClientRect();
     var w = rect.width;
     var h = rect.height;
-    var dpr = window.devicePixelRatio || 1;
 
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    var ctx = canvas.getContext("2d");
+    resizeCanvasIfNeeded();
     if (!ctx) { animId = requestAnimationFrame(render); return; }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var profile = getProfile(w, h);
+    ctx.setTransform(canvasDpr, 0, 0, canvasDpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
     var cx = w / 2, cy = h / 2;
-    var radiusX = w * 0.42;
-    var radiusY = h * 0.40;
-    var centerR = 58;
+    var radiusX = profile.radiusX;
+    var radiusY = profile.radiusY;
+    var centerR = profile.centerR;
 
     /* Connector positions */
     var positions = LAYOUT.map(function (node) {
@@ -297,7 +384,7 @@
           var d = Math.sqrt(Math.pow(mouse.x - p.px, 2) + Math.pow(mouse.y - p.py, 2));
           if (d < minDist) { minDist = d; hoveredConnIdx = i; }
         }
-        if (minDist > 55) hoveredConnIdx = null;
+        if (minDist > profile.hitMaxDist) hoveredConnIdx = null;
       }
     }
 
@@ -323,7 +410,7 @@
     var anyConnHovered = hoveredConnIdx !== null || labelHoveredCat !== null;
 
     /* 1. Lines: connector → center */
-    var connIconR = 16;
+    var connIconR = profile.connIconR;
     for (var i = 0; i < LAYOUT.length; i++) {
       var p = positions[i];
       var ha = connHoverAlphas[i] || 0;
@@ -385,7 +472,7 @@
       var rectW = radiusX * 2.16;
       var rawRectH = radiusY * 2.16;
       var rawRectY = cy - rawRectH / 2;
-      var minTop = 56;
+      var minTop = (w <= 520) ? 44 : 56;
       var rectY = Math.max(rawRectY, minTop);
       var rectH = rawRectH - (rectY - rawRectY);
       var rectX = cx - rectW / 2;
@@ -464,7 +551,7 @@
       var p = positions[i];
       var ha = connHoverAlphas[i] || 0;
       var catColor = CAT_COLORS[node.cat] || "255,255,255";
-      var iconSize = 22 + ha * 6;
+      var iconSize = profile.iconBase + ha * profile.iconGrow;
 
       var opacity, labelOpacity, useOrange;
 
@@ -488,7 +575,7 @@
         useOrange = false;
       }
 
-      var glowR = 32 + ha * 16;
+      var glowR = (w <= 520) ? (24 + ha * 12) : (32 + ha * 16);
       var glowGrad = ctx.createRadialGradient(p.px, p.py, 0, p.px, p.py, glowR);
       if (hoveredCenter && cha > 0.1) {
         glowGrad.addColorStop(0, "rgba(255,107,43," + (0.15 * opacity) + ")");
@@ -544,10 +631,10 @@
 
     /* 6. Subtle mouse glow */
     if (mouse) {
-      var g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 160);
-      g.addColorStop(0, "rgba(255,110,6,0.025)");
+      var g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, profile.mouseGlowR);
+      g.addColorStop(0, "rgba(255,110,6," + profile.mouseGlowAlpha + ")");
       g.addColorStop(1, "rgba(255,110,6,0)");
-      ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 160, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(mouse.x, mouse.y, profile.mouseGlowR, 0, Math.PI * 2);
       ctx.fillStyle = g; ctx.fill();
     }
 
@@ -573,6 +660,13 @@
     ctx.quadraticCurveTo(x, y, x + r, y);
     ctx.closePath();
   }
+
+  applyResponsiveContainer();
+  resizeCanvasIfNeeded();
+  window.addEventListener("resize", function () {
+    applyResponsiveContainer();
+    resizeCanvasIfNeeded();
+  }, { passive: true });
 
   animId = requestAnimationFrame(render);
 })();
