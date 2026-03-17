@@ -249,11 +249,13 @@
       dpr: clamp((window.devicePixelRatio || 1), 1, small ? 2 : 2.5),
       // Layout scale tweaks
       radiusX: w * (small ? 0.46 : 0.42),
-      radiusY: h * (small ? 0.34 : 0.40),
+      // On small screens, give more vertical breathing room (less bunching)
+      radiusY: h * (small ? 0.42 : 0.40),
       centerR: small ? (tiny ? 36 : 42) : 58,
       connIconR: small ? 14 : 16,
       iconBase: small ? 18 : 22,
       iconGrow: small ? 4 : 6,
+      ringScale: small ? 1.08 : 1,
       // Hit radius a bit tighter on mobile so taps don't feel "random"
       hitMaxDist: small ? 44 : 55,
       // Reduce heavyweight glow radii on mobile
@@ -267,15 +269,42 @@
     // Smaller minimum height on mobile so it doesn't look stretched/empty
     var w = container.getBoundingClientRect().width || window.innerWidth || 0;
     if (w && w <= 520) {
-      container.style.minHeight = "420px";
+      // Give the cloud a bit more room to avoid overlap
+      container.style.minHeight = "520px";
       container.style.cursor = "default";
       catBar.style.top = "12px";
       catBar.style.gap = "8px";
+      catBar.style.flexWrap = "wrap";
+      catBar.style.padding = "0 12px";
+      catBar.style.justifyContent = "center";
+
+      // Make category tabs smaller so they fit
+      CAT_ORDER.forEach(function (cat) {
+        var c = catElements[cat];
+        if (!c || !c.el) return;
+        c.el.style.padding = "5px 10px";
+        c.el.style.gap = "6px";
+        c.text.style.fontSize = "10px";
+        c.text.style.letterSpacing = "0.08em";
+      });
     } else {
       container.style.minHeight = "620px";
       container.style.cursor = "crosshair";
       catBar.style.top = "20px";
       catBar.style.gap = "10px";
+      catBar.style.flexWrap = "nowrap";
+      catBar.style.padding = "0";
+      catBar.style.justifyContent = "center";
+
+      // Restore default tab sizing
+      CAT_ORDER.forEach(function (cat) {
+        var c2 = catElements[cat];
+        if (!c2 || !c2.el) return;
+        c2.el.style.padding = "6px 12px";
+        c2.el.style.gap = "8px";
+        c2.text.style.fontSize = "11px";
+        c2.text.style.letterSpacing = "0.1em";
+      });
     }
   }
 
@@ -365,8 +394,9 @@
 
     /* Connector positions */
     var positions = LAYOUT.map(function (node) {
-      var rx = radiusX * node.ring;
-      var ry = radiusY * node.ring;
+      var ring = clamp(node.ring * (profile.ringScale || 1), 0.55, 1.02);
+      var rx = radiusX * ring;
+      var ry = radiusY * ring;
       return { px: cx + Math.cos(node.angle) * rx, py: cy + Math.sin(node.angle) * ry };
     });
 
@@ -554,6 +584,7 @@
       var iconSize = profile.iconBase + ha * profile.iconGrow;
 
       var opacity, labelOpacity, useOrange;
+      var isMobile = w <= 520 || isCoarsePointer;
 
       if (hoveredCenter) {
         opacity = 0.5 + cha * 0.5;
@@ -571,7 +602,8 @@
         }
       } else {
         opacity = 0.7;
-        labelOpacity = 0.35;
+        // On mobile, hide all labels by default to prevent unreadable overlaps
+        labelOpacity = isMobile ? 0 : 0.35;
         useOrange = false;
       }
 
@@ -616,8 +648,16 @@
         ctx.fillText(node.label.charAt(0).toUpperCase(), p.px, p.py);
       }
 
+      // On mobile: only show labels when the node/category is actively highlighted
+      if (isMobile && labelHoveredCat === null && hoveredConnIdx === null && !hoveredCenter) {
+        labelOpacity = 0;
+      }
+      if (isMobile && ha < 0.15 && hoveredConnIdx !== i && (labelHoveredCat === null || node.cat !== labelHoveredCat)) {
+        labelOpacity = 0;
+      }
+
       if (labelOpacity > 0.02) {
-        ctx.font = "10px 'JetBrains Mono','Courier New',monospace";
+        ctx.font = (isMobile ? "9px" : "10px") + " 'JetBrains Mono','Courier New',monospace";
         var labelColor = useOrange
           ? "rgba(255,107,43," + labelOpacity + ")"
           : ha > 0.1
