@@ -365,9 +365,10 @@
       var highlighted = (activeCat === cat) || centerHovered;
       c.el.style.border = "1px solid " + c.hex + (highlighted ? "44" : "15");
       c.el.style.background = highlighted ? c.hex + "12" : c.hex + "06";
-      c.el.style.opacity = highlighted ? "1" : "0.45";
+      // Make tab text readable on mobile; keep "dim" state but less faded
+      c.el.style.opacity = highlighted ? "1" : "0.62";
       c.dot.style.boxShadow = highlighted ? "0 0 8px " + c.hex + "88" : "none";
-      c.text.style.color = highlighted ? c.hex : "rgba(255,255,255,0.5)";
+      c.text.style.color = highlighted ? c.hex : "rgba(255,255,255,0.66)";
     });
   }
 
@@ -665,7 +666,8 @@
       }
 
       if (labelOpacity > 0.02) {
-        ctx.font = (isMobile ? "600 9px" : "600 10px") + " 'JetBrains Mono','Courier New',monospace";
+        // Slightly bigger signatures; keep small enough not to break layout
+        ctx.font = (isMobile ? "600 9.5px" : "600 10.5px") + " 'JetBrains Mono','Courier New',monospace";
         var labelColor = useOrange
           ? "rgba(255,107,43," + labelOpacity + ")"
           : ha > 0.1
