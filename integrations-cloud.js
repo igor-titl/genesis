@@ -596,12 +596,12 @@
 
       if (hoveredCenter) {
         opacity = 0.5 + cha * 0.5;
-        labelOpacity = 0.35 + cha * 0.55;
+        labelOpacity = clamp(0.4 + cha * 0.6, 0, 1);
         useOrange = cha > 0.3;
       } else if (anyConnHovered) {
         if (ha > 0.01) {
           opacity = 0.4 + ha * 0.6;
-          labelOpacity = 0.18 + ha * 0.9;
+          labelOpacity = clamp(0.22 + ha * 0.78, 0, 1);
           useOrange = false;
         } else {
           opacity = 0.18;
@@ -611,7 +611,7 @@
       } else {
         opacity = 0.7;
         // On mobile, hide all labels by default to prevent unreadable overlaps
-        labelOpacity = isMobile ? 0 : 0.5;
+        labelOpacity = isMobile ? 0 : 0.58;
         useOrange = false;
       }
 
