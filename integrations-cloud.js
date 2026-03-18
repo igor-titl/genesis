@@ -222,7 +222,8 @@
   var connHoverAlphas = LAYOUT.map(function () { return 0; });
   var catHighlightMap = {};
   var bubbleAlpha = 0;
-  var lastActiveCat = null;
+  // Force initial UI sync in updateCatLabels() (avoid early-return on first render)
+  var lastActiveCat = "__INIT__";
   var lastCenterHovered = false;
 
   // Responsive / performance state
