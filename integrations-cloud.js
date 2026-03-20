@@ -254,9 +254,9 @@
       // On small screens, give more vertical breathing room (less bunching)
       radiusY: h * (small ? 0.42 : 0.40),
       centerR: small ? (tiny ? 36 : 42) : 58,
-      connIconR: small ? 14 : 16,
-      iconBase: small ? 18 : 22,
-      iconGrow: small ? 4 : 6,
+      connIconR: small ? 16 : 18,
+      iconBase: small ? 20 : 24,
+      iconGrow: small ? 5 : 7,
       ringScale: small ? 1.08 : 1,
       // Hit radius a bit tighter on mobile so taps don't feel "random"
       hitMaxDist: small ? 44 : 55,
@@ -284,9 +284,9 @@
       CAT_ORDER.forEach(function (cat) {
         var c = catElements[cat];
         if (!c || !c.el) return;
-        c.el.style.padding = "5px 10px";
+        c.el.style.padding = "6px 12px";
         c.el.style.gap = "6px";
-        c.text.style.fontSize = "10px";
+        c.text.style.fontSize = "11px";
         c.text.style.letterSpacing = "0.08em";
       });
     } else {
@@ -302,9 +302,9 @@
       CAT_ORDER.forEach(function (cat) {
         var c2 = catElements[cat];
         if (!c2 || !c2.el) return;
-        c2.el.style.padding = "6px 12px";
+        c2.el.style.padding = "7px 14px";
         c2.el.style.gap = "8px";
-        c2.text.style.fontSize = "11px";
+        c2.text.style.fontSize = "12px";
         c2.text.style.letterSpacing = "0.1em";
       });
     }
@@ -668,7 +668,7 @@
 
       if (labelOpacity > 0.02) {
         // Slightly bigger signatures; keep small enough not to break layout
-        ctx.font = (isMobile ? "600 9.5px" : "600 10.5px") + " 'JetBrains Mono','Courier New',monospace";
+        ctx.font = (isMobile ? "600 10.5px" : "600 11.5px") + " 'JetBrains Mono','Courier New',monospace";
         var labelColor = useOrange
           ? "rgba(255,107,43," + labelOpacity + ")"
           : ha > 0.1
