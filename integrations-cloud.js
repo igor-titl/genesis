@@ -250,14 +250,14 @@
       // Cap DPR to keep mobile crisp but fast
       dpr: clamp((window.devicePixelRatio || 1), 1, small ? 2 : 2.5),
       // Layout scale tweaks
-      radiusX: w * (small ? 0.46 : 0.42),
+      radiusX: w * (small ? 0.5 : 0.45),
       // On small screens, give more vertical breathing room (less bunching)
-      radiusY: h * (small ? 0.42 : 0.40),
+      radiusY: h * (small ? 0.46 : 0.43),
       centerR: small ? (tiny ? 36 : 42) : 58,
-      connIconR: small ? 16 : 18,
-      iconBase: small ? 20 : 24,
-      iconGrow: small ? 5 : 7,
-      ringScale: small ? 1.08 : 1,
+      connIconR: small ? 17 : 19,
+      iconBase: small ? 21 : 26,
+      iconGrow: small ? 5.5 : 8,
+      ringScale: small ? 1.13 : 1.06,
       // Hit radius a bit tighter on mobile so taps don't feel "random"
       hitMaxDist: small ? 44 : 55,
       // Reduce heavyweight glow radii on mobile
@@ -272,7 +272,7 @@
     var w = container.getBoundingClientRect().width || window.innerWidth || 0;
     if (w && w <= 520) {
       // Give the cloud a bit more room to avoid overlap
-      container.style.minHeight = "520px";
+      container.style.minHeight = "560px";
       container.style.cursor = "default";
       catBar.style.top = "12px";
       catBar.style.gap = "8px";
@@ -284,9 +284,9 @@
       CAT_ORDER.forEach(function (cat) {
         var c = catElements[cat];
         if (!c || !c.el) return;
-        c.el.style.padding = "6px 12px";
+        c.el.style.padding = "6px 13px";
         c.el.style.gap = "6px";
-        c.text.style.fontSize = "11px";
+        c.text.style.fontSize = "11.5px";
         c.text.style.letterSpacing = "0.08em";
       });
     } else {
@@ -302,9 +302,9 @@
       CAT_ORDER.forEach(function (cat) {
         var c2 = catElements[cat];
         if (!c2 || !c2.el) return;
-        c2.el.style.padding = "7px 14px";
+        c2.el.style.padding = "8px 15px";
         c2.el.style.gap = "8px";
-        c2.text.style.fontSize = "12px";
+        c2.text.style.fontSize = "12.5px";
         c2.text.style.letterSpacing = "0.1em";
       });
     }
@@ -399,12 +399,12 @@
     var cx = w / 2, cy = safeTop + availH / 2;
     var radiusX = profile.radiusX;
     // Recompute Y radius from available height so the layout stays balanced
-    var radiusY = availH * ((w <= 520) ? 0.44 : 0.40);
+    var radiusY = availH * ((w <= 520) ? 0.48 : 0.43);
     var centerR = profile.centerR;
 
     /* Connector positions */
     var positions = LAYOUT.map(function (node) {
-      var ring = clamp(node.ring * (profile.ringScale || 1), 0.55, 1.02);
+      var ring = clamp(node.ring * (profile.ringScale || 1), 0.55, 1.12);
       var rx = radiusX * ring;
       var ry = radiusY * ring;
       return { px: cx + Math.cos(node.angle) * rx, py: cy + Math.sin(node.angle) * ry };
@@ -668,7 +668,7 @@
 
       if (labelOpacity > 0.02) {
         // Slightly bigger signatures; keep small enough not to break layout
-        ctx.font = (isMobile ? "600 10.5px" : "600 11.5px") + " 'JetBrains Mono','Courier New',monospace";
+        ctx.font = (isMobile ? "600 11px" : "600 12.5px") + " 'JetBrains Mono','Courier New',monospace";
         var labelColor = useOrange
           ? "rgba(255,107,43," + labelOpacity + ")"
           : ha > 0.1
