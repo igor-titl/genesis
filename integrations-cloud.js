@@ -250,14 +250,14 @@
       // Cap DPR to keep mobile crisp but fast
       dpr: clamp((window.devicePixelRatio || 1), 1, small ? 2 : 2.5),
       // Layout scale tweaks
-      radiusX: w * (small ? 0.5 : 0.45),
+      radiusX: w * (small ? 0.46 : 0.45),
       // On small screens, give more vertical breathing room (less bunching)
-      radiusY: h * (small ? 0.46 : 0.43),
+      radiusY: h * (small ? 0.42 : 0.43),
       centerR: small ? (tiny ? 36 : 42) : 58,
-      connIconR: small ? 17 : 19,
-      iconBase: small ? 21 : 26,
-      iconGrow: small ? 5.5 : 8,
-      ringScale: small ? 1.13 : 1.06,
+      connIconR: small ? 15 : 19,
+      iconBase: small ? 19 : 26,
+      iconGrow: small ? 4.5 : 8,
+      ringScale: small ? 1.03 : 1.06,
       // Hit radius a bit tighter on mobile so taps don't feel "random"
       hitMaxDist: small ? 44 : 55,
       // Reduce heavyweight glow radii on mobile
@@ -272,7 +272,7 @@
     var w = container.getBoundingClientRect().width || window.innerWidth || 0;
     if (w && w <= 520) {
       // Give the cloud a bit more room to avoid overlap
-      container.style.minHeight = "560px";
+      container.style.minHeight = "540px";
       container.style.cursor = "default";
       catBar.style.top = "12px";
       catBar.style.gap = "8px";
@@ -399,15 +399,24 @@
     var cx = w / 2, cy = safeTop + availH / 2;
     var radiusX = profile.radiusX;
     // Recompute Y radius from available height so the layout stays balanced
-    var radiusY = availH * ((w <= 520) ? 0.48 : 0.43);
+    var radiusY = availH * ((w <= 520) ? 0.42 : 0.43);
     var centerR = profile.centerR;
 
     /* Connector positions */
     var positions = LAYOUT.map(function (node) {
-      var ring = clamp(node.ring * (profile.ringScale || 1), 0.55, 1.12);
+      var ring = clamp(node.ring * (profile.ringScale || 1), 0.55, 1.06);
       var rx = radiusX * ring;
       var ry = radiusY * ring;
-      return { px: cx + Math.cos(node.angle) * rx, py: cy + Math.sin(node.angle) * ry };
+      var px = cx + Math.cos(node.angle) * rx;
+      var py = cy + Math.sin(node.angle) * ry;
+
+      // Keep nodes safely inside canvas bounds on mobile
+      if (w <= 520 || isCoarsePointer) {
+        var edgePad = profile.iconBase + profile.iconGrow + 12;
+        px = clamp(px, edgePad, w - edgePad);
+        py = clamp(py, safeTop + edgePad, h - edgePad);
+      }
+      return { px: px, py: py };
     });
 
     /* Hit detection */
@@ -668,7 +677,7 @@
 
       if (labelOpacity > 0.02) {
         // Slightly bigger signatures; keep small enough not to break layout
-        ctx.font = (isMobile ? "600 11px" : "600 12.5px") + " 'JetBrains Mono','Courier New',monospace";
+        ctx.font = (isMobile ? "600 10px" : "600 12.5px") + " 'JetBrains Mono','Courier New',monospace";
         var labelColor = useOrange
           ? "rgba(255,107,43," + labelOpacity + ")"
           : ha > 0.1
