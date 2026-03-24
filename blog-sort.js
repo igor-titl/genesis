@@ -2,13 +2,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const tabs = document.querySelectorAll('.b-tab');
   const searchInput = document.querySelector('.input-3');
   const clearBtn = document.querySelector('.clear-btn');
-  const itemLists = document.querySelectorAll('.w-dyn-items');
+  // Only the top-level blog list, not nested reference lists inside cards
+  const itemLists = document.querySelectorAll('.blog-list.w-dyn-items');
 
   let activeType = 'all';
   let searchQuery = '';
 
   function getAllItems() {
-    return document.querySelectorAll('.w-dyn-item');
+    // Direct children only — excludes nested author/reference w-dyn-items
+    return document.querySelectorAll('.blog-list.w-dyn-items > .w-dyn-item');
   }
 
   function applyFilters() {
