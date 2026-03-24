@@ -18,7 +18,9 @@ document.addEventListener('DOMContentLoaded', function () {
       // Support both data-type attribute and hidden .item-type element
       const typeEl = item.querySelector('.item-type');
       const type = (item.getAttribute('data-type') || (typeEl ? typeEl.innerText : '') || '').toLowerCase().trim();
-      const text = item.innerText.toLowerCase();
+      const clone = item.cloneNode(true);
+      clone.querySelectorAll('.w-dyn-list').forEach(function (el) { el.remove(); });
+      const text = clone.innerText.toLowerCase();
 
       const typeMatch = activeType === 'all' || type === activeType;
       const searchMatch = searchQuery === '' || text.includes(searchQuery);
@@ -54,9 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (label === 'all') {
         activeType = 'all';
       } else if (label === 'articles') {
-        activeType = 'Articles';
+        activeType = 'article';
       } else if (label === 'videos') {
-        activeType = 'Videos';
+        activeType = 'video';
       }
 
       applyFilters();
