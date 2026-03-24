@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   const tabs = document.querySelectorAll('.b-tab');
-  const searchInput = document.querySelector('.input-3');
+  const searchInput = document.querySelector('.input-search');
   const clearBtn = document.querySelector('.clear-btn');
   // Only the top-level blog list, not nested reference lists inside cards
   const itemLists = document.querySelectorAll('.blog-list.w-dyn-items');
