@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (label === 'all') {
         activeType = 'all';
       } else if (label === 'articles') {
-        activeType = 'article';
+        activeType = 'Articles';
       } else if (label === 'videos') {
-        activeType = 'video';
+        activeType = 'Videos';
       }
 
       applyFilters();
