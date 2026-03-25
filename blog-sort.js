@@ -67,8 +67,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  const inputWrap = document.querySelector('.inpit-wrap');
+
   // Search input
   if (searchInput) {
+    searchInput.addEventListener('focus', function () {
+      if (inputWrap) inputWrap.classList.add('active');
+    });
+
     searchInput.addEventListener('input', function () {
       searchQuery = searchInput.value.toLowerCase().trim();
       applyFilters();
@@ -80,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
     clearBtn.addEventListener('click', function () {
       searchQuery = '';
       if (searchInput) searchInput.value = '';
+      if (inputWrap) inputWrap.classList.remove('active');
 
       activeType = 'all';
       tabs.forEach(function (t) { t.classList.remove('active'); });
