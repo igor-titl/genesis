@@ -69,10 +69,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const inputWrap = document.querySelector('.inpit-wrap');
 
+  function showClearBtn() {
+    if (clearBtn) clearBtn.classList.add('active');
+  }
+
+  function hideClearBtn() {
+    if (clearBtn) clearBtn.classList.remove('active');
+  }
+
   // Search input
   if (searchInput) {
     searchInput.addEventListener('focus', function () {
       if (inputWrap) inputWrap.classList.add('active');
+      showClearBtn();
+    });
+
+    searchInput.addEventListener('blur', function () {
+      if (!searchInput.value) {
+        if (inputWrap) inputWrap.classList.remove('active');
+        hideClearBtn();
+      }
     });
 
     searchInput.addEventListener('input', function () {
@@ -83,10 +99,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Clear button
   if (clearBtn) {
+    clearBtn.addEventListener('mousedown', function (e) {
+      // Prevent blur from firing before click
+      e.preventDefault();
+    });
+
     clearBtn.addEventListener('click', function () {
       searchQuery = '';
-      if (searchInput) searchInput.value = '';
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.blur();
+      }
       if (inputWrap) inputWrap.classList.remove('active');
+      hideClearBtn();
 
       activeType = 'all';
       tabs.forEach(function (t) { t.classList.remove('active'); });
