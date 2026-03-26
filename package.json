@@ -4,7 +4,8 @@
   "description": "NeuralCanvas — interactive 3D node network animation for Webflow",
   "main": "neural-canvas-webflow.js",
   "scripts": {
-    "build": "npx terser neural-canvas-webflow.js -o neural-canvas-webflow.min.js --compress --mangle"
+    "build": "npx terser neural-canvas-webflow.js -o neural-canvas-webflow.min.js --compress --mangle",
+    "build:hw": "npx terser hw-scroll-animation.js -o hw-scroll-animation.min.js --compress --mangle"
   },
   "keywords": ["webflow", "canvas", "animation"],
   "license": "MIT",

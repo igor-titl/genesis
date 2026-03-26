@@ -1,7 +1,6 @@
 (function () {
   const cardList = document.querySelector('.hw-card-list');
   const cards    = Array.from(document.querySelectorAll('.hw-card'));
-  const progress = document.querySelector('.progress');
 
   const images = [
     document.querySelector('.hw-card_img._11'),
@@ -41,14 +40,6 @@
 
   let rafId;
   function tick() {
-    const r  = cardList.getBoundingClientRect();
-    const wh = window.innerHeight;
-
-    if (progress) {
-      const pct = Math.max(0, Math.min(1, (wh - r.top) / (r.height + wh)));
-      progress.style.height = (pct * 100) + '%';
-    }
-
     applyActive(getActiveIndex());
   }
 
