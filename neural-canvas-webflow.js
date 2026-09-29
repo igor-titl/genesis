@@ -255,14 +255,8 @@ function boot() {
   var nextMicroSpawnTime = 200;
   var lastSpawnWasHub = true;    // alternate: hub → micro → hub → micro
 
-  /* Auto-rotation */
-  var AUTO_SPEED = 0.0025;
-  var autoRotating = true;
-  var dragVelX = 0, dragVelY = 0;
-
-  /* Drag */
+  /* Drag — the only thing that turns the camera; auto-rotation is off */
   var isDragging = false;
-  var dragStartX = 0, dragStartY = 0;
   var dragLastX = 0, dragLastY = 0;
 
   /* Hover */
@@ -542,10 +536,8 @@ function boot() {
   /* ── Input handlers ──────────────────────────────────────── */
   function onMouseDown(e) {
     if (!introDone) return;
-    isDragging = true; autoRotating = false;
-    dragStartX = e.clientX; dragStartY = e.clientY;
+    isDragging = true;
     dragLastX = e.clientX; dragLastY = e.clientY;
-    dragVelX = 0; dragVelY = 0;
   }
   function onMouseMove(e) {
     var rect = canvas.getBoundingClientRect();
@@ -556,15 +548,11 @@ function boot() {
       var dx = e.clientX - dragLastX, dy = e.clientY - dragLastY;
       camRotY += dx * 0.005; camRotX += dy * 0.005;
       camRotX = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, camRotX));
-      dragVelX = dy * 0.005; dragVelY = dx * 0.005;
       dragLastX = e.clientX; dragLastY = e.clientY;
     }
   }
   function onMouseUp() {
-    if (isDragging) {
-      isDragging = false;
-      if (Math.abs(dragLastX - dragStartX) + Math.abs(dragLastY - dragStartY) < 5) autoRotating = true;
-    }
+    isDragging = false;
   }
   function onMouseLeave() {
     mouseX = -9999; mouseY = -9999; hoveredHub = null;
@@ -575,10 +563,9 @@ function boot() {
     if (!introDone) return;
     if (e.touches.length === 1) {
       var t = e.touches[0];
-      isDragging = true; autoRotating = false;
-      dragStartX = t.clientX; dragStartY = t.clientY;
+      isDragging = true;
       dragLastX = t.clientX; dragLastY = t.clientY;
-      dragVelX = 0; dragVelY = 0; pinchDist = 0;
+      pinchDist = 0;
     } else if (e.touches.length === 2) {
       isDragging = false;
     }
@@ -590,7 +577,6 @@ function boot() {
       var dx = t.clientX - dragLastX, dy = t.clientY - dragLastY;
       camRotY += dx * 0.005; camRotX += dy * 0.005;
       camRotX = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, camRotX));
-      dragVelX = dy * 0.005; dragVelY = dx * 0.005;
       dragLastX = t.clientX; dragLastY = t.clientY;
     }
   }
@@ -1329,18 +1315,7 @@ function boot() {
       camDist += (targetCamDist - camDist) * 0.05;
     }
 
-    if (!isDragging) {
-      if (hoverZoomActive) {
-        if (autoRotating) camRotY += AUTO_SPEED * 0.15;
-      } else if (autoRotating) {
-        camRotY += AUTO_SPEED;
-      } else {
-        camRotY += dragVelY; camRotX += dragVelX;
-        camRotX = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, camRotX));
-        dragVelX *= 0.95; dragVelY *= 0.95;
-        if (Math.abs(dragVelX) < 0.0001 && Math.abs(dragVelY) < 0.0001) autoRotating = true;
-      }
-    }
+    /* The camera holds its angle: it only moves while the user drags. */
 
     drawNebula();
 
