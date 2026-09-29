@@ -1,0 +1,480 @@
+/* Podcast Player — Genesis Website
+   Prefix: pp- to avoid Webflow style conflicts
+   Fonts: Inter, Space Grotesk (load via Webflow or Google Fonts)
+*/
+
+/* ─── Reset ──────────────────────────────────────────────── */
+.pp-player *,
+.pp-player *::before,
+.pp-player *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.pp-player button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-player button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Root container ──────────────────────────────────────── */
+.pp-player {
+  position: relative;
+  width: 100%;
+  background-color: #121212;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 32px;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  color: #ffffff;
+}
+
+/* ─── Content wrapper ─────────────────────────────────────── */
+.pp-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
+/* ─── Headline row ────────────────────────────────────────── */
+.pp-headline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  gap: 24px;
+}
+
+.pp-episode-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pp-podcast-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.26px;
+  text-transform: uppercase;
+  color: #dbdbdb;
+  font-feature-settings: 'dlig' 1;
+}
+
+.pp-episode-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -1.5px;
+  color: #ffffff;
+}
+
+.pp-logo {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pp-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ─── Player row ──────────────────────────────────────────── */
+.pp-player-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+/* ─── Playback section ────────────────────────────────────── */
+.pp-playback {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── Transport buttons ───────────────────────────────────── */
+.pp-transport {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.pp-skip-btn {
+  width: 21px;
+  height: 24px;
+  color: #ffffff;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.pp-skip-btn:hover {
+  opacity: 1;
+}
+
+.pp-skip-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pp-skip-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pp-player .pp-play-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(51, 51, 51, 0.8) !important;
+  backdrop-filter: blur(2.18px);
+  -webkit-backdrop-filter: blur(2.18px);
+  flex-shrink: 0;
+  transition: none;
+}
+
+.pp-player .pp-play-btn:hover {
+  background: rgba(51, 51, 51, 0.8) !important;
+}
+
+.pp-player .pp-play-btn svg {
+  width: 23px;
+  height: 23px;
+  color: #ffffff;
+}
+
+.pp-player .pp-play-btn .pp-icon-play,
+.pp-player .pp-play-btn .pp-icon-pause {
+  width: 23px !important;
+  height: 23px !important;
+}
+
+/* Pause icon hidden by default */
+.pp-icon-pause { display: none; }
+.pp-icon-play  { display: block; }
+.pp-player.is-playing .pp-icon-pause { display: block; }
+.pp-player.is-playing .pp-icon-play  { display: none; }
+
+/* ─── Progress area ───────────────────────────────────────── */
+.pp-progress-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0;
+}
+
+.pp-time {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.28px;
+  color: #dbdbdb;
+  white-space: nowrap;
+  font-feature-settings: 'dlig' 1;
+}
+
+.pp-progress-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 20px;
+  cursor: pointer;
+}
+
+.pp-progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+}
+
+.pp-progress-fill {
+  position: absolute;
+  left: 0;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 2px;
+  width: 0%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pp-progress-handle {
+  position: absolute;
+  width: 16px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 100px;
+  left: 0%;
+  transform: translateX(-50%);
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 0.1s;
+}
+
+.pp-progress-bar:hover .pp-progress-handle {
+  transform: translateX(-50%) scale(1.2);
+}
+
+/* ─── Extras: speed + volume ──────────────────────────────── */
+.pp-extras {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  align-self: flex-end;
+  padding-bottom: 8px;
+}
+
+/* Speed button */
+.pp-player .pp-speed-btn {
+  border: 1px solid rgba(173, 173, 173, 0.95);
+  border-radius: 999px !important;
+  height: 28px;
+  min-width: 58px;
+  padding: 0 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.28px;
+  color: #adadad;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  font-feature-settings: 'dlig' 1;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-speed-btn:hover {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+/* Speed dropdown */
+.pp-speed-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  display: none;
+  flex-direction: column;
+  min-width: 80px;
+  z-index: 100;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.pp-speed-dropdown.is-open {
+  display: flex;
+}
+
+.pp-speed-option {
+  padding: 8px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #adadad;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+
+.pp-speed-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.pp-speed-option.is-active {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Volume */
+.pp-volume-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pp-volume-btn {
+  width: 24px;
+  height: 24px;
+  color: #ffffff;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.pp-volume-btn:hover {
+  opacity: 1;
+}
+
+.pp-volume-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Volume slider popup */
+.pp-volume-popup {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px 10px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 100;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.pp-volume-popup.is-open {
+  display: flex;
+}
+
+.pp-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 4px;
+  height: 80px;
+  background: #333;
+  border-radius: 2px;
+  cursor: pointer;
+  accent-color: #ffffff;
+}
+
+.pp-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.pp-volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+/* ─── Muted state ─────────────────────────────────────────── */
+.pp-volume-btn .pp-icon-vol-off { display: none; }
+.pp-volume-btn .pp-icon-vol-on  { display: block; }
+.pp-player.is-muted .pp-volume-btn .pp-icon-vol-off { display: block; }
+.pp-player.is-muted .pp-volume-btn .pp-icon-vol-on  { display: none; }
+
+/* ─── Loading state ───────────────────────────────────────── */
+.pp-player.is-loading .pp-play-btn {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pp-player {
+    padding: 24px 20px;
+  }
+
+  .pp-content {
+    gap: 28px;
+  }
+
+  .pp-headline {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pp-logo {
+    width: 56px;
+    height: 56px;
+    order: -1;
+  }
+
+  .pp-episode-title {
+    font-size: 20px;
+    letter-spacing: -1px;
+  }
+
+  .pp-player-row {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .pp-playback {
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .pp-play-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .pp-progress-area {
+    width: 100%;
+    flex: unset;
+    order: 3;
+    padding: 4px 0;
+  }
+
+  .pp-extras {
+    padding-bottom: 0;
+  }
+}

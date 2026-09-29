@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Podcast Player — Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="podcast-player.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .demo-wrap {
+      width: 100%;
+      max-width: 900px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-wrap">
+    <!--
+      data-src     — URL to the .mp3 / .m4a file
+      data-title   — Episode title
+      data-podcast — Podcast / show name
+    -->
+    <div class="pp-player"
+         data-src="https://pub-0064c5070548496d91b282b7874f6dd9.r2.dev/SUPERDATASCIENCEPTYLTD7109622026.mp3"
+         data-title="SDS 981: How Data Engineers Are &quot;10x'ing&quot; Themselves With Agents, feat. Matthew J. Glickman"
+         data-podcast="Super Data Science: ML &amp; AI Podcast with Jon Krohn">
+    </div>
+  </div>
+
+  <script src="podcast-player.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  PODCAST PLAYER — Webflow Custom Code Embed              ║
+  ║                                                          ║
+  ║  1. Host podcast-player.css and podcast-player.js on    ║
+  ║     a CDN (e.g. jsDelivr, Cloudflare R2, or Webflow     ║
+  ║     Assets) and replace the two src/href URLs below.    ║
+  ║                                                          ║
+  ║  2. Paste this entire block into a Webflow              ║
+  ║     "Custom Code" embed element on your page.           ║
+  ║                                                          ║
+  ║  3. Fill in the data-* attributes for each episode.     ║
+  ╚══════════════════════════════════════════════════════════╝
+-->
+
+<!-- Fonts (skip if already loaded in Webflow project settings) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@400&display=swap" rel="stylesheet">
+
+<!-- Player styles — replace URL with your hosted file -->
+<link rel="stylesheet" href="YOUR_CDN_URL/podcast-player.css">
+
+<!-- Player element ─────────────────────────────────────────
+     data-src     MP3 / M4A audio file URL (required)
+     data-title   Episode title
+     data-podcast Podcast / show name
+──────────────────────────────────────────────────────────── -->
+<div class="pp-player"
+     data-src="https://pub-0064c5070548496d91b282b7874f6dd9.r2.dev/SUPERDATASCIENCEPTYLTD7109622026.mp3"
+     data-title="SDS 981: How Data Engineers Are &quot;10x'ing&quot; Themselves With Agents"
+     data-podcast="Super Data Science: ML &amp; AI Podcast with Jon Krohn">
+</div>
+
+<!-- Player script — replace URL with your hosted file -->
+<script src="YOUR_CDN_URL/podcast-player.js"></script>
